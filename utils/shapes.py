@@ -5,21 +5,42 @@
 
 import numpy as np
 
-class Hahn(object):
+class FunkyFunction(object):
+    """ Abstract function creating pretty 2D plots """
+    def __init__(self, m = 2, n = 2, k = 7, r = 50):
+        """ Keep it up to 4 factors per function? """
+        # Two ints
+        self._m = m
+        self._n = n
+        # Two floats
+        self._k = float(k)
+        self._r = float(r)
+        # Zero fucks
+
+        # Also allow shifting
+        self.x_shift = 0
+        self.y_shift = 0
+
+    def get(self, x, y, tick):
+        """ Call this to get the matrix """
+        # Apply shifts
+        x += self.x_shift
+        y += self.y_shift
+
+        return self.make(x, y, tick)
+
+    def make(self, x, y, tick):
+        """ Implement this with some funky functions """
+        print 'major fuckup'
+
+class Hahn(FunkyFunction):
     """
     Otto Hahn was a German chemist and pioneer in the fields
     of radioactivity and radiochemistry who won the Nobel Prize
     in Chemistry in 1944 for the discovery and the radiochemical
     proof of nuclear fission.
     """
-    def __init__(self, m = 2, n = 2, k = 13., r = 80.):
-        """ el Creador """
-        self._m = m
-        self._n = n
-        self._k = k
-        self._r = r
-
-    def get(self, x, y, tick):
+    def make(self, x, y, tick):
         """ Gets the shape at time tick """
         # Simplify notation
         mm = self._m
@@ -30,7 +51,7 @@ class Hahn(object):
         # out = np.sin(kk * (x**mm + y**nn) + np.sin(tick/rr))
         return out
 
-class Fritz(object):
+class Fritz(FunkyFunction):
     """
     Friedrich Wilhelm "Fritz" Strassmann was a German chemist
     who, with Otto Hahn in 1938, identified barium in the
@@ -38,20 +59,15 @@ class Fritz(object):
     which, when confirmed, demonstrated the previously unknown
     phenomenon of nuclear fission.
     """
-    def __init__(self, m = 2, n = 2):
-        """ el Konsdrukdor """
-        self._m = m
-        self._n = n
-
-    def get(self, x, y, tick):
+    def make(self, x, y, tick):
         """ Get it """
         # Simplify notation
         mm = self._m
         nn = self._n
-        out = np.cos(tick/30. + 3 * np.arctan2(x**mm, y**nn))
+        out = (x**2 + y**2) * np.cos(1. * tick/nn + mm * np.arctan2(x, y))
         return out
 
-class Meitner(object):
+class Meitner(FunkyFunction):
     """
     Lise Meitner was an Austrian physicist who worked on
     radioactivity and nuclear physics. Otto Hahn and Meitner
@@ -59,12 +75,8 @@ class Meitner(object):
     nuclear fission of uranium when it absorbed an extra neutron;
     the results were published in early 1939.
     """
-    def __init__(self, m = 2, n = 2):
-        """ el Konsdrukdor """
-        self._m = m
-        self._n = n
-
-    def get(self, x, y, tick):
+    def make(self, x, y, tick):
+        """ yo """
         # Simplify notation
         mm = self._m
         nn = self._n

@@ -12,16 +12,16 @@ def norm(this):
 
 def funky_image(XX, YY, tick):
     """ Generate some funk """
-    a_hahn = yo.Hahn(4, 2, 8, 60.)
+    a_hahn = yo.Hahn()
     Za = a_hahn.get(XX, YY, tick)
 
-    fritz = yo.Fritz(1, 1)
+    fritz = yo.Fritz()
     Zb = fritz.get(XX, YY, tick)
 
-    meitner = yo.Meitner(2, 9)
-    Zc = meitner.get(XX, YY, tick)
+    # meitner = yo.Meitner(7, 9)
+    # Zc = meitner.get(XX, YY, tick)
 
-    Z = norm(Za) + norm(Zb) + norm(Zc)
+    Z = norm(Za) + norm(Zb)
 
     # le normalizatione
     Z -= Z.min()
@@ -33,11 +33,11 @@ def funky_image(XX, YY, tick):
 
 def main():
     """ blurp """
-    x = np.linspace(-2, 0, 401)
-    y = np.linspace(0, 2, 301)
+    x = np.linspace(-1, 1, 401)
+    y = np.linspace(-1, 1, 301)
     XX, YY = np.meshgrid(x, y)
 
-    for tick in range(1000):
+    for tick in range(100):
         print tick
         ZZ = funky_image(XX, YY, 3*tick)
         filename = 'imgs/{}.png'.format(1e7 + tick)
