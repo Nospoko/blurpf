@@ -10,16 +10,26 @@ def norm(this):
     this /= this.max()
     return this
 
+
 def funky_image(XX, YY, tick):
     """ Generate some funk """
+    timeshift = 0.3 + 0.3 * np.sin(7.*tick/500)
+    phi = np.pi * 2 * tick/2500.0
+    ax_shift = 2. * np.cos(phi)
+    ay_shift = 2. * np.sin(phi)
+
     a_hahn = yo.Hahn()
+    a_hahn.set_x_shift(ax_shift)
+    a_hahn.set_y_shift(ay_shift)
     Za = a_hahn.get(XX, YY, tick)
 
-    fritz = yo.Fritz()
-    Zb = fritz.get(XX, YY, tick)
+    bx_shift = 2. * np.cos(phi - np.pi)
+    by_shift = 2. * np.sin(phi - np.pi)
 
-    # meitner = yo.Meitner(7, 9)
-    # Zc = meitner.get(XX, YY, tick)
+    b_hahn = yo.Hahn()
+    b_hahn.set_x_shift(bx_shift)
+    b_hahn.set_x_shift(by_shift)
+    Zb = b_hahn.get(XX, YY, tick)
 
     Z = norm(Za) + norm(Zb)
 
@@ -33,13 +43,21 @@ def funky_image(XX, YY, tick):
 
 def main():
     """ blurp """
-    x = np.linspace(-1, 1, 401)
-    y = np.linspace(-1, 1, 301)
+    if False:
+        x_res = 1080
+        y_res = 720
+    else:
+        x_res = 540
+        y_res = 360
+
+    span = 1
+    x = np.linspace(-span, span, x_res)
+    y = np.linspace(-span, span, y_res)
     XX, YY = np.meshgrid(x, y)
 
-    for tick in range(100):
+    for tick in range(500):
         print tick
-        ZZ = funky_image(XX, YY, 3*tick)
+        ZZ = funky_image(XX, YY, 5*tick)
         filename = 'imgs/{}.png'.format(1e7 + tick)
         img = cv.applyColorMap(ZZ, cv.COLORMAP_OCEAN)
         cv.imwrite(filename, img)

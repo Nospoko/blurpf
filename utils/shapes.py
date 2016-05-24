@@ -23,15 +23,29 @@ class FunkyFunction(object):
 
     def get(self, x, y, tick):
         """ Call this to get the matrix """
-        # Apply shifts
-        x += self.x_shift
-        y += self.y_shift
+        # x and y must be copied to apply shifts 
+        xx = np.empty_like(x)
+        yy = np.empty_like(y)
+        xx[:] = x
+        yy[:] = y
 
-        return self.make(x, y, tick)
+        # Apply shifts
+        xx += self.x_shift
+        yy += self.y_shift
+
+        return self.make(xx, yy, tick)
 
     def make(self, x, y, tick):
         """ Implement this with some funky functions """
         print 'major fuckup'
+
+    def set_x_shift(self, howfar):
+        """ Where to """
+        self.x_shift = howfar
+
+    def set_y_shift(self, howfar):
+        """ Where to """
+        self.y_shift = howfar
 
 class Hahn(FunkyFunction):
     """
@@ -80,5 +94,6 @@ class Meitner(FunkyFunction):
         # Simplify notation
         mm = self._m
         nn = self._n
-        out = np.cos(tick/nn + mm * np.arctan2(x, y))
+        out = np.sin(x*y) * np.cos(tick/nn + mm * np.arctan2(x, y))
         return out
+
