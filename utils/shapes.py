@@ -7,7 +7,7 @@ import numpy as np
 
 class FunkyFunction(object):
     """ Abstract function creating pretty 2D plots """
-    def __init__(self, m = 2, n = 2, k = 7, r = 50):
+    def __init__(self, m = 2, n = 2, k = 7, r = 20):
         """ Keep it up to 4 factors per function? """
         # Two ints
         self._m = m
@@ -61,7 +61,14 @@ class Hahn(FunkyFunction):
         nn = self._n
         kk = self._k
         rr = self._r
-        out = np.sin(kk * (x**mm + y**nn) + tick/rr)
+
+        rad = x**mm + y**nn
+        out = np.sin(kk * rad + tick/rr)
+
+        for it in range(2, 6):
+            out += 1./it *  np.sin(kk*it * rad + tick/rr/it)
+        # out += 0.2 * np.cos(kk* 2.33 * (x**mm + y**nn) + tick/rr/2.)
+        # out += 0.4 * np.cos(kk* 4.33 * (x**mm + y**nn) + tick/rr/0.8)
         # out = np.sin(kk * (x**mm + y**nn) + np.sin(tick/rr))
         return out
 
