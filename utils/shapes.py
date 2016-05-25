@@ -65,7 +65,9 @@ class Hahn(FunkyFunction):
         rad = x**mm + y**nn
         out = np.sin(kk * rad + tick/rr)
 
-        for it in range(2, 6):
+        parzyste = range(10)[2::2]
+
+        for it in parzyste:
             out += 1./it *  np.sin(kk*it * rad + tick/rr/it)
         # out += 0.2 * np.cos(kk* 2.33 * (x**mm + y**nn) + tick/rr/2.)
         # out += 0.4 * np.cos(kk* 4.33 * (x**mm + y**nn) + tick/rr/0.8)

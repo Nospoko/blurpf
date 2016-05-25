@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import multiprocessing as mp
 from utils import signal as us
 from utils import shapes as yo
 from matplotlib import pyplot as plt
@@ -52,6 +53,28 @@ def funky_image(XX, YY, tick):
     # OpenCV likes uint8
     return np.uint8(Z)
 
+def make_single(tick):
+    """ Parallel ready single image generator """
+    print tick
+    if False:
+        x_res = 1080
+        y_res = 720
+    else:
+        x_res = 540
+        y_res = 540
+
+    xspan = 4.5 + 2*np.cos(8.0 * tick/100)
+    yspan = 4.5 + 2*np.cos(8.0 * tick/100)
+    x = np.linspace(-xspan, xspan, x_res)
+    y = np.linspace(-yspan, yspan, y_res)
+    XX, YY = np.meshgrid(x, y)
+
+    ZZ = funky_image(XX, YY, 5*tick)
+    filename = 'imgs/{}.png'.format(int(1e7 + tick))
+    img = cv.applyColorMap(ZZ, cv.COLORMAP_OCEAN)
+    cv.imwrite(filename, img)
+
+
 def main():
     """ blurp """
     # blompf notes sample PITCH | START | DURATION | VOLUME
@@ -64,26 +87,9 @@ def main():
              [59, 42, 2, 67],
              [64, 44, 4, 69]]
 
-    if False:
-        x_res = 1080
-        y_res = 720
-    else:
-        x_res = 540
-        y_res = 540
-
-    for tick in range(500):
-        print tick
-
-        xspan = 4.5 + np.cos(8.0 * tick/100)
-        yspan = 4.5 + np.sin(8.0 * tick/100)
-        x = np.linspace(-xspan, xspan, x_res)
-        y = np.linspace(-yspan, yspan, y_res)
-        XX, YY = np.meshgrid(x, y)
-
-        ZZ = funky_image(XX, YY, 5*tick)
-        filename = 'imgs/{}.png'.format(1e7 + tick)
-        img = cv.applyColorMap(ZZ, cv.COLORMAP_OCEAN)
-        cv.imwrite(filename, img)
+    tick_range = range(500)
+    pool = mp.Pool(processes=mp.cpu_count())
+    pool.map(make_single, tick_range)
 
 if __name__ == '__main__':
     main()
