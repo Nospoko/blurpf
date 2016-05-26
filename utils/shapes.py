@@ -23,7 +23,7 @@ class FunkyFunction(object):
 
     def get(self, x, y, tick):
         """ Call this to get the matrix """
-        # x and y must be copied to apply shifts 
+        # x and y must be copied to apply shifts savely
         xx = np.empty_like(x)
         yy = np.empty_like(y)
         xx[:] = x
@@ -59,13 +59,13 @@ class Hahn(FunkyFunction):
         # Simplify notation
         mm = self._m
         nn = self._n
-        kk = self._k
+        kk = self._k * 0.3
         rr = self._r
 
-        rad = x**mm + y**nn
+        rad = x**2 + y**2
         out = np.sin(kk * rad + tick/rr)
 
-        parzyste = range(10)[2::2]
+        parzyste = range(mm)[2::2]
 
         for it in parzyste:
             out += 1./it *  np.sin(kk*it * rad + tick/rr/it)

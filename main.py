@@ -13,37 +13,40 @@ def norm(this):
 
 def funky_image(XX, YY, tick):
     """ Generate some funk """
-    timeshift = 0.3 + 0.3 * np.sin(7.*tick/500)
     phi = 10*np.pi * 2 * tick/2500.0
     the = 8*np.pi * 2 * tick/1250.0
-    r_shift = 2 + 1.5 * np.cos(the)
+
+    r_shift = 8 + 0.0 * np.cos(the)
+
     ax_shift = r_shift * np.cos(phi)
     ay_shift = r_shift * np.sin(phi)
 
-    a_hahn = yo.Hahn(k = 0.11, r = 33)
+    a_hahn = yo.Hahn(k = 0.8, r = 33, m = 2)
     a_hahn.set_x_shift(ax_shift)
     a_hahn.set_y_shift(ay_shift)
     Za = a_hahn.get(XX, YY, tick)
 
-    bx_shift = 2. * np.cos(phi - np.pi)
-    by_shift = 2. * np.sin(phi - np.pi)
+    bx_shift = r_shift * np.cos(phi - np.pi * 2./3)
+    by_shift = r_shift * np.sin(phi - np.pi * 2./3)
 
-    b_hahn = yo.Hahn(k = 0.5)
+    b_hahn = yo.Hahn(k = 0.8, m = 5)
     b_hahn.set_x_shift(bx_shift)
     b_hahn.set_y_shift(by_shift)
     Zb = b_hahn.get(XX, YY, tick)
 
-    cx_shift = 0
-    cy_shift = 3. * np.sin(2*phi - np.pi/2)
+    cx_shift = r_shift * np.cos(phi + np.pi * 2./3)
+    cy_shift = r_shift * np.sin(phi + np.pi * 2./3)
 
-    c_hahn = yo.Hahn(k = 2)
+    c_hahn = yo.Hahn(k = 0.8, m = 12)
     c_hahn.set_x_shift(cx_shift)
     c_hahn.set_y_shift(cy_shift)
     Zc = c_hahn.get(XX, YY, tick)
 
-    Z = 3 * norm(Za) + \
-            norm(Zb) * 1.5 * (1 + 0.5 * np.cos(phi - np.pi/2)) + \
-            norm(Zc) * 2 * np.cos(phi) ** 2
+    Z = norm(Za) + norm(Zb) + norm(Zc)
+
+    # Z = 3 * norm(Za) + \
+    #         norm(Zb) * 1.5 * (1 + 0.5 * np.cos(phi - np.pi/2)) + \
+    #         norm(Zc) * 2 * np.cos(phi) ** 2
 
     # le normalizatione
     Z -= Z.min()
@@ -56,15 +59,15 @@ def funky_image(XX, YY, tick):
 def make_single(tick):
     """ Parallel ready single image generator """
     print tick
-    if True:
+    if False:
         x_res = 1920
         y_res = 1080
     else:
         x_res = 540
         y_res = 540
 
-    xspan = 8.5 + 2*np.cos(8.0 * tick/100)
-    yspan = 8.5 + 2*np.cos(8.0 * tick/100)
+    xspan = 18.5 + 4*np.cos(8.0 * tick/100)
+    yspan = 18.5 + 4*np.cos(8.0 * tick/100)
     x = np.linspace(-xspan, xspan, x_res)
     y = np.linspace(-yspan, yspan, y_res)
     XX, YY = np.meshgrid(x, y)
@@ -73,7 +76,6 @@ def make_single(tick):
     filename = 'imgs/{}.png'.format(int(1e7 + tick))
     img = cv.applyColorMap(ZZ, cv.COLORMAP_OCEAN)
     cv.imwrite(filename, img)
-
 
 def main():
     """ blurp """
@@ -87,8 +89,8 @@ def main():
              [59, 42, 2, 67],
              [64, 44, 4, 69]]
 
-    tick_range = range(1500)
-    pool = mp.Pool(processes=mp.cpu_count())
+    tick_range = range(100)
+    pool = mp.Pool(processes = mp.cpu_count())
     pool.map(make_single, tick_range)
 
 if __name__ == '__main__':
