@@ -18,24 +18,20 @@ def funky_image(XX, YY, tick):
 
     r_shift = 16 + 3.0 * np.cos(the)
 
-    a_hahn = yo.Hahn(m = 20)
+    a_hahn = yo.Hahn(k = 0.5, r = 5, m = 10)
 
     # Some factors
-    freqs = [0.5  for it in range(10)]
-    lmbds = [5 for it in range(10)]
+    freqs = [0.5  for it in range(20)]
+    lmbds = [5 for it in range(20)]
 
     # Partial drawings container
     frames = []
 
-    howmany = 9
+    howmany = 15
     for it in range(howmany):
         phi += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(phi)
         ay_shift = r_shift * np.sin(phi)
-
-        # Secret factors
-        a_hahn._k = freqs[it]
-        a_hahn._r = lmbds[it]
 
         a_hahn.set_x_shift(ax_shift)
         a_hahn.set_y_shift(ay_shift)
@@ -50,7 +46,7 @@ def funky_image(XX, YY, tick):
     # le normalizatione
     Z -= Z.min()
     Z /= Z.max()
-    Z *= 140 + 0*64 * np.cos(phi)
+    Z *= 140 + 64 * np.cos(phi)
 
     # OpenCV likes uint8
     return np.uint8(Z)
@@ -80,13 +76,12 @@ def main():
     """ blurp """
     # blompf notes sample PITCH | START | DURATION | VOLUME
     notes = [[45, 0, 8, 70],
+             [48, 0, 8, 69],
+             [53, 0, 8, 69],
+             [35, 0, 8, 72],
              [43, 8, 16, 69],
-             [43, 24, 8, 70],
-             [47, 32, 4, 70],
-             [52, 36, 4, 69],
-             [55, 40, 2, 69],
-             [59, 42, 2, 67],
-             [64, 44, 4, 69]]
+             [50, 8, 16, 68],
+             [53, 8, 16, 68]]
 
     tick_range = range(100)
     pool = mp.Pool(processes = mp.cpu_count())
