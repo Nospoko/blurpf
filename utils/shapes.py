@@ -63,16 +63,17 @@ class Hahn(FunkyFunction):
         rr = self._r
 
         rad = x**2 + y**2
-        out = np.sin(kk * rad + tick/rr)
+        # out = np.sin(kk * rad + 0*tick/rr)
+        out = np.empty_like(rad)
 
         parzyste = range(mm)[2::2]
 
         for it in parzyste:
-            out += 1./it *  np.sin(kk*it * rad + tick/rr/it)
+            out += 1./it *  np.sin(kk*it * rad + 0*tick/rr/it)
         # out += 0.2 * np.cos(kk* 2.33 * (x**mm + y**nn) + tick/rr/2.)
         # out += 0.4 * np.cos(kk* 4.33 * (x**mm + y**nn) + tick/rr/0.8)
         # out = np.sin(kk * (x**mm + y**nn) + np.sin(tick/rr))
-        return out
+        return out**2
 
 class Fritz(FunkyFunction):
     """
