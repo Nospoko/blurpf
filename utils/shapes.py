@@ -66,11 +66,11 @@ class Hahn(FunkyFunction):
 
         phase_shift = nn * np.pi/20
         # out = np.sin(kk * rad + 0*tick/rr)
-        out = np.empty_like(rad)
+        out = np.zeros_like(rad)
 
-        parzyste = range(mm)[2::2]
+        evens = range(mm)[2::2]
 
-        for it in parzyste:
+        for it in evens:
             out += 1./it *  np.cos(kk*it * rad + phase_shift)
         # out += 0.2 * np.cos(kk* 2.33 * (x**mm + y**nn) + tick/rr/2.)
         # out += 0.4 * np.cos(kk* 4.33 * (x**mm + y**nn) + tick/rr/0.8)
