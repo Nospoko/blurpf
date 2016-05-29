@@ -1,3 +1,4 @@
+import pickle
 import cv2 as cv
 import numpy as np
 import multiprocessing as mp
@@ -14,10 +15,21 @@ def norm(this):
 
 def funky_image(XX, YY, tick):
     """ Generate some funk """
-    phi = 4*np.pi * 2 * tick/2500.0
-    the = 2*np.pi * 2 * tick/1250.0
+    with open('xf_yo.pickle') as fin:
+        notes = pickle.load(fin)
 
-    r_shift = 16 + 3.0 * np.cos(the)
+    lo, mi, hi = ua.notes2amps(notes)
+    full = lo + mi + hi
+    # This sums to circa 333
+    full = np.cumsum(full)
+    rlo = np.cumsum(lo)
+
+    # phi = 4*np.pi * 2 * tick/4000.0
+    phi = 4*np.pi * full[tick]/400.0
+    the = 2*np.pi * 2 * tick/1250.0
+    the = 4*np.pi * rlo[tick]/rlo[-1]
+
+    r_shift = 16 + 3 * np.cos(the)
 
     a_hahn = yo.Hahn(k = 0.5, r = 5, m = 10)
 
@@ -28,15 +40,15 @@ def funky_image(XX, YY, tick):
     # Partial drawings container
     frames = []
 
-    howmany = 19
+    howmany = 8
     for it in range(howmany):
         phi += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(phi)
         ay_shift = r_shift * np.sin(phi)
 
         # This seem to be adding a nice twist
-        if it == 8:
-            a_hahn._k = 2
+        # if it == 8:
+        #     a_hahn._k = 2
 
         a_hahn.set_x_shift(ax_shift)
         a_hahn.set_y_shift(ay_shift)
@@ -50,7 +62,7 @@ def funky_image(XX, YY, tick):
     # le normalizatione
     Z -= Z.min()
     Z /= Z.max()
-    Z *= 140 + 64 * np.cos(phi**2)
+    Z *= 140 + 32* np.cos(phi**2) * np.sin(the/3.) ** 2 + 40 *lo[tick]
 
     # OpenCV likes uint8
     return np.uint8(Z)
@@ -62,8 +74,8 @@ def make_single(tick):
         x_res = 1920
         y_res = 1080
     else:
-        x_res = 590
-        y_res = 440
+        x_res = 490
+        y_res = 380
 
     xspan = 4.5 - 2*np.cos(2.0 * np.pi * tick/100)
     yspan = 4.5 - 2*np.cos(2.0 * np.pi * tick/100)
@@ -89,7 +101,7 @@ def main():
 
     amps = ua.notes2amps(notes)
 
-    tick_range = range(100)
+    tick_range = range(200)
     pool = mp.Pool(processes = mp.cpu_count())
     pool.map(make_single, tick_range)
 

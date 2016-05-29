@@ -3,7 +3,7 @@ import numpy as np
 def notes2amps(notes):
     """ Change blompfish notes into blurpish amps """
     # blurp frames per second
-    fps = 24
+    fps = 40
 
     # blompf ticks per second (this was found empirically wtf)
     tps = 2**5
@@ -30,7 +30,7 @@ def notes2amps(notes):
         if note[0] < 45:
             sta, end = get_note_framespan(note)
             lo_amp[sta : end] += funfunfun(note)
-        elif note[0] < 75:
+        elif note[0] < 65:
             sta, end = get_note_framespan(note)
             mi_amp[sta : end] += funfunfun(note)
         else:
@@ -47,7 +47,10 @@ def funfunfun(note):
     dziedzina = np.linspace(0, 1, end - sta)
 
     # Make y shape
-    out = np.exp(-dziedzina)
+    out = 0.2 * np.exp(-3.0 * dziedzina)
+
+    # Velocity related renormalization
+    out *= note[3]/128.0
 
     return out
 
@@ -55,7 +58,7 @@ def get_note_framespan(note):
     """ Go from ticks to frames """
     # TODO abstract this out
     tps = 2**5
-    fps = 24
+    fps = 40
     # Ticks
     sta = note[1]
     end = sta + note[2]
