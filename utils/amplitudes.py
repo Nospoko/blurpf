@@ -73,7 +73,10 @@ def funfunfun(note):
     dziedzina = np.linspace(0, 1, end - sta)
 
     # Make y shape
-    out = 0.2 * np.exp(-3.0 * dziedzina)
+    # out = 0.2 * np.exp(-3.0 * dziedzina)
+
+    do_me = (dziedzina - 0.1) / 0.5
+    out = 0.1 + 0.2 * np.exp(-do_me**2)**2
 
     # Velocity related renormalization
     out *= note[3]/128.0

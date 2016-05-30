@@ -30,10 +30,16 @@ def funky_image(args):
 
     # TODO Add at least 2 sound related variables here
     # Manipulate the visibility span
-    xspan = 4.5 - 2*np.cos(2.0 * np.pi * tick/100)
-    yspan = 4.5 - 2*np.cos(2.0 * np.pi * tick/100)
-    x = np.linspace(-xspan, xspan, x_res)
-    y = np.linspace(-yspan, yspan, y_res)
+    xspan = 8.5 - 4*np.sin(phi) * np.cos(the)
+    xleft = -xspan - 0*np.sin(2*phi)
+    xright = xspan - 0*np.sin(2*phi)
+
+    yspan = 8.5 - 4*np.sin(phi) * np.cos(the)
+    yleft = -yspan - 0*np.sin(phi)*np.cos(2*phi)
+    yright = yspan - 0*np.sin(phi)*np.cos(2*phi)
+
+    x = np.linspace(xleft, xright, x_res)
+    y = np.linspace(yleft, yright, y_res)
     XX, YY = np.meshgrid(x, y)
 
     r_shift = 16 + 3 * np.cos(the)
@@ -47,7 +53,7 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 10
+    howmany = 11
     for it in range(howmany):
         phi += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(phi)
@@ -94,17 +100,15 @@ def main():
     """ blurp """
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
-    # TODO multiprocessed version could simpy take a list of
-    # visualization parameters per each tick, insteat of the tick range
-    # Like so:
-    # vis_factors = ua.notes2factors(notes)
-    # pool.map(make_single, vis_factors)
-
     # Get notes
     with open('xf_yo.pickle') as fin:
         notes = pickle.load(fin)
 
+    # Generate movie factors
     args = ua.notes2args(notes)
+
+    # Make only first howmany frames
+    # args = args[0:200, :]
 
     pool = mp.Pool(processes = mp.cpu_count())
     pool.map(make_single, args)
