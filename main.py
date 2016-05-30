@@ -2,6 +2,7 @@ import pickle
 import cv2 as cv
 import numpy as np
 import multiprocessing as mp
+from scipy import signal as ss
 from utils import signal as us
 from utils import shapes as yo
 from utils import amplitudes as ua
@@ -30,11 +31,11 @@ def funky_image(args):
 
     # TODO Add at least 2 sound related variables here
     # Manipulate the visibility span
-    xspan = 8.5 - 4*np.sin(phi) * np.cos(the)
+    xspan = 8.5 - 5*np.sin(phi) * np.cos(the)
     xleft = -xspan - 0*np.sin(2*phi)
     xright = xspan - 0*np.sin(2*phi)
 
-    yspan = 8.5 - 4*np.sin(phi) * np.cos(the)
+    yspan = 8.5 - 5*np.sin(phi) * np.cos(the)
     yleft = -yspan - 0*np.sin(phi)*np.cos(2*phi)
     yright = yspan - 0*np.sin(phi)*np.cos(2*phi)
 
@@ -42,7 +43,8 @@ def funky_image(args):
     y = np.linspace(yleft, yright, y_res)
     XX, YY = np.meshgrid(x, y)
 
-    r_shift = 16 + 3 * np.cos(the)
+    # r_shift = 14 + 3 * np.cos(the)
+    r_shift = 10 + 4 * abs(ss.sawtooth(the + phi))
 
     a_hahn = yo.Hahn(k = 0.5, r = 5, m = 10)
 
@@ -53,7 +55,7 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 11
+    howmany = 14
     for it in range(howmany):
         phi += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(phi)
@@ -75,7 +77,7 @@ def funky_image(args):
     # le normalizatione
     Z -= Z.min()
     Z /= Z.max()
-    Z *= 140 + 32* np.cos(phi**2) * np.sin(the/3.) ** 2
+    Z *= 80 + 102* np.abs(ss.sawtooth(the + phi))
 
     # OpenCV likes uint8
     return np.uint8(Z)
@@ -101,7 +103,7 @@ def main():
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Get notes
-    with open('xf_yo.pickle') as fin:
+    with open('hz_yo.pickle') as fin:
         notes = pickle.load(fin)
 
     # Generate movie factors

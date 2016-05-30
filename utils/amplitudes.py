@@ -3,7 +3,7 @@ import numpy as np
 def notes2amps(notes):
     """ Change blompfish notes into blurpish amps """
     # blurp frames per second
-    fps = 40
+    fps = 30
 
     # blompf ticks per second (this was found empirically wtf)
     tps = 2**5
@@ -45,9 +45,15 @@ def amps2pams(lo, mi, hi):
     full = lo + mi + hi
     full = np.cumsum(full)
 
+    lom = lo + mi
+    lom = np.cumsum(lom)
+
+    mih = mi + hi
+    mih = np.cumsum(mih)
+
     # Make it go from 0 to 1
-    phi = 4*np.pi * full/full[-1]
-    the = 4*np.pi * full/full[-1]
+    phi = 3*np.pi * lom/lom[-1]
+    the = 2*np.pi * mih/mih[-1]
 
     # Enumeration iterator
     its = range(len(full))
@@ -87,7 +93,7 @@ def get_note_framespan(note):
     """ Go from ticks to frames """
     # TODO abstract this out
     tps = 2**5
-    fps = 40
+    fps = 30
     # Ticks
     sta = note[1]
     end = sta + note[2]
