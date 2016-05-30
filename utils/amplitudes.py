@@ -39,6 +39,32 @@ def notes2amps(notes):
 
     return lo_amp, mi_amp, hi_amp
 
+def amps2pams(lo, mi, hi):
+    """ Changes band amplitudes into per-frame parameters """
+    # In the simplest variant just use one band:
+    full = lo + mi + hi
+    full = np.cumsum(full)
+
+    # Make it go from 0 to 1
+    phi = 4*np.pi * full/full[-1]
+    the = 4*np.pi * full/full[-1]
+
+    # Enumeration iterator
+    its = range(len(full))
+
+    # Make it so every row of output contains parameter
+    # values for one frame of the movie
+    out = np.column_stack((phi, the, its))
+
+    return out
+
+def notes2args(notes):
+    """ Take notes make args lol """
+    lo, mi, hi = notes2amps(notes)
+    args = amps2pams(lo, mi, hi)
+
+    return args
+
 def funfunfun(note):
     """ Change note into a 1d ADSR kind of function """
     sta, end = get_note_framespan(note)

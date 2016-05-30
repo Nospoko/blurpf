@@ -13,21 +13,28 @@ def norm(this):
     this /= this.max()
     return this
 
-def funky_image(XX, YY, tick):
+def funky_image(args):
     """ Generate some funk """
-    with open('xf_yo.pickle') as fin:
-        notes = pickle.load(fin)
+    # De-serialize the arguments
+    phi     = args[0]
+    the     = args[1]
+    tick    = args[2]
 
-    lo, mi, hi = ua.notes2amps(notes)
-    full = lo + mi + hi
-    # This sums to circa 333
-    full = np.cumsum(full)
-    rlo = np.cumsum(lo)
+    # Set resolution
+    if False:
+        x_res = 1920
+        y_res = 1080
+    else:
+        x_res = 490
+        y_res = 380
 
-    # phi = 4*np.pi * 2 * tick/4000.0
-    phi = 4*np.pi * full[tick]/400.0
-    the = 2*np.pi * 2 * tick/1250.0
-    the = 4*np.pi * rlo[tick]/rlo[-1]
+    # TODO Add at least 2 sound related variables here
+    # Manipulate the visibility span
+    xspan = 4.5 - 2*np.cos(2.0 * np.pi * tick/100)
+    yspan = 4.5 - 2*np.cos(2.0 * np.pi * tick/100)
+    x = np.linspace(-xspan, xspan, x_res)
+    y = np.linspace(-yspan, yspan, y_res)
+    XX, YY = np.meshgrid(x, y)
 
     r_shift = 16 + 3 * np.cos(the)
 
@@ -40,7 +47,7 @@ def funky_image(XX, YY, tick):
     # Partial drawings container
     frames = []
 
-    howmany = 8
+    howmany = 10
     for it in range(howmany):
         phi += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(phi)
@@ -62,48 +69,45 @@ def funky_image(XX, YY, tick):
     # le normalizatione
     Z -= Z.min()
     Z /= Z.max()
-    Z *= 140 + 32* np.cos(phi**2) * np.sin(the/3.) ** 2 + 40 *lo[tick]
+    Z *= 140 + 32* np.cos(phi**2) * np.sin(the/3.) ** 2
 
     # OpenCV likes uint8
     return np.uint8(Z)
 
-def make_single(tick):
+def make_single(args):
     """ Parallel ready single image generator """
+    # We need this for proper file naming and clear logs
+    tick = args[2]
     print tick
-    if False:
-        x_res = 1920
-        y_res = 1080
-    else:
-        x_res = 490
-        y_res = 380
 
-    xspan = 4.5 - 2*np.cos(2.0 * np.pi * tick/100)
-    yspan = 4.5 - 2*np.cos(2.0 * np.pi * tick/100)
-    x = np.linspace(-xspan, xspan, x_res)
-    y = np.linspace(-yspan, yspan, y_res)
-    XX, YY = np.meshgrid(x, y)
+    # Create one frame
+    ZZ = funky_image(args)
 
-    ZZ = funky_image(XX, YY, tick)
-    filename = 'imgs/{}.png'.format(int(1e7 + tick))
+    # Color it up
     img = cv.applyColorMap(ZZ, cv.COLORMAP_JET)
+
+    # Save
+    filename = 'imgs/{}.png'.format(int(1e7 + tick))
     cv.imwrite(filename, img)
 
 def main():
     """ blurp """
     # blompf notes sample PITCH | START | DURATION | VOLUME
-    notes = [[45, 0, 8, 70],
-             [48, 0, 8, 69],
-             [53, 0, 8, 69],
-             [35, 0, 8, 72],
-             [43, 8, 16, 69],
-             [50, 8, 16, 68],
-             [53, 8, 16, 68]]
 
-    amps = ua.notes2amps(notes)
+    # TODO multiprocessed version could simpy take a list of
+    # visualization parameters per each tick, insteat of the tick range
+    # Like so:
+    # vis_factors = ua.notes2factors(notes)
+    # pool.map(make_single, vis_factors)
 
-    tick_range = range(200)
+    # Get notes
+    with open('xf_yo.pickle') as fin:
+        notes = pickle.load(fin)
+
+    args = ua.notes2args(notes)
+
     pool = mp.Pool(processes = mp.cpu_count())
-    pool.map(make_single, tick_range)
+    pool.map(make_single, args)
 
 if __name__ == '__main__':
     main()
