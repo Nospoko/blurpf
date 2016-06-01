@@ -74,9 +74,10 @@ def notes2args(notes):
 def funfunfun(note):
     """ Change note into a 1d ADSR kind of function """
     sta, end = get_note_framespan(note)
+    lon = end - sta
 
     # Prepare x axis
-    dziedzina = np.linspace(0, 1, end - sta)
+    dziedzina = np.linspace(0, 1, lon)
 
     # Make y shape
     # out = 0.2 * np.exp(-3.0 * dziedzina)
@@ -86,6 +87,7 @@ def funfunfun(note):
 
     # Velocity related renormalization
     out *= note[3]/128.0
+    out += 32.0 / lon
 
     return out
 
