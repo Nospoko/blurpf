@@ -31,11 +31,11 @@ def funky_image(args):
 
     # TODO Add at least 2 sound related variables here
     # Manipulate the visibility span
-    xspan = 8.5 - 5*np.sin(phi) * np.cos(the)
+    xspan = 9.5 - 5*np.sin(2*phi) * np.cos(the)
     xleft = -xspan - 0*np.sin(2*phi)
     xright = xspan - 0*np.sin(2*phi)
 
-    yspan = 8.5 - 5*np.sin(phi) * np.cos(the)
+    yspan = 9.5 - 5*np.sin(2*phi) * np.cos(the)
     yleft = -yspan - 0*np.sin(phi)*np.cos(2*phi)
     yright = yspan - 0*np.sin(phi)*np.cos(2*phi)
 
@@ -55,7 +55,7 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 14
+    howmany = 9
     for it in range(howmany):
         the += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(the)
@@ -77,7 +77,7 @@ def funky_image(args):
     # le normalizatione
     Z -= Z.min()
     Z /= Z.max()
-    Z *= 120
+    Z *= 140
 
     # OpenCV likes uint8
     return np.uint8(Z)
