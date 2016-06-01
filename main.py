@@ -44,7 +44,7 @@ def funky_image(args):
     XX, YY = np.meshgrid(x, y)
 
     # r_shift = 14 + 3 * np.cos(the)
-    r_shift = 10 + 4 * abs(ss.sawtooth(the + phi))
+    r_shift = 10 + 4 * abs(ss.sawtooth(2* phi))
 
     a_hahn = yo.Hahn(k = 0.5, r = 5, m = 10)
 
@@ -57,9 +57,9 @@ def funky_image(args):
 
     howmany = 14
     for it in range(howmany):
-        phi += 2.0 * np.pi/howmany
-        ax_shift = r_shift * np.cos(phi)
-        ay_shift = r_shift * np.sin(phi)
+        the += 2.0 * np.pi/howmany
+        ax_shift = r_shift * np.cos(the)
+        ay_shift = r_shift * np.sin(the)
 
         # This seem to be adding a nice twist
         # if it == 8:
@@ -77,7 +77,7 @@ def funky_image(args):
     # le normalizatione
     Z -= Z.min()
     Z /= Z.max()
-    Z *= 80 + 102* np.abs(ss.sawtooth(the + phi))
+    Z *= 120
 
     # OpenCV likes uint8
     return np.uint8(Z)
@@ -103,7 +103,7 @@ def main():
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Get notes
-    with open('hz_yo.pickle') as fin:
+    with open('cr_yo.pickle') as fin:
         notes = pickle.load(fin)
 
     # Generate movie factors

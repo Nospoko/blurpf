@@ -52,8 +52,8 @@ def amps2pams(lo, mi, hi):
     mih = np.cumsum(mih)
 
     # Make it go from 0 to 1
-    phi = 3*np.pi * lom/lom[-1]
-    the = 2*np.pi * mih/mih[-1]
+    phi = 4*np.pi * lom/lom[-1]
+    the = 4*np.pi * mih/mih[-1]
 
     # Enumeration iterator
     its = range(len(full))
