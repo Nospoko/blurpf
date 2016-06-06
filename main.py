@@ -47,7 +47,7 @@ def funky_image(args):
     # r_shift = 14 + 3 * np.cos(the)
     r_shift = 10 + 4 * abs(ss.sawtooth(the + phi))
 
-    a_hahn = yo.Hahn(k = 0.5, r = 5, m = 15)
+    a_hahn = yo.Hahn(k = 0.5, r = 5, m = 25)
 
     # Some factors
     freqs = [0.5  for it in range(20)]
@@ -56,7 +56,7 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 17
+    howmany = 27
     for it in range(howmany):
         the += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(the)

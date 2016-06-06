@@ -86,8 +86,11 @@ def funfunfun(note):
     out = 0.1 + 0.2 * np.exp(-do_me**2)**2
 
     # Velocity related renormalization
-    out *= note[3]/128.0
-    out += 32.0 / lon
+    if note[3] < 90:
+        out *= 0.5
+
+    # FIXME why is this here?
+    out *= 32.0 / lon
 
     return out
 
