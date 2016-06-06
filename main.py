@@ -22,12 +22,12 @@ def funky_image(args):
     tick    = args[2]
 
     # Set resolution
-    if not False:
+    if False:
         x_res = 1920
         y_res = 1080
     else:
-        x_res = 490
-        y_res = 380
+        x_res = 390
+        y_res = 280
 
     # TODO Add at least 2 sound related variables here
     # Manipulate the visibility span
@@ -81,8 +81,15 @@ def funky_image(args):
     Z = np.sqrt(Z)
     Z *= 110
 
+    # Now when it is normalized to 110 we can adjust some intensities
+    # Lets say we want the mean to oscillate around 60
+    deficit = 60 - Z.mean()
+    Z += deficit
+    ids = Z > 110
+    Z[ids] -= deficit
+
     # OpenCV likes uint8
-    return np.uint8(Z)
+    return np.uint8(np.abs(Z))
 
 def make_single(args):
     """ Parallel ready single image generator """
