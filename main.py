@@ -22,7 +22,7 @@ def funky_image(args):
     tick    = args['tick']
 
     # Set resolution
-    if False:
+    if not False:
         x_res = 1920
         y_res = 1080
     else:
@@ -91,6 +91,48 @@ def funky_image(args):
     # OpenCV likes uint8
     return np.uint8(np.abs(Z))
 
+def draw_chord(img, args):
+    """ Add chord information """
+    # Drawing parameters
+    chord_power = args['ch_pow']
+    width       = img.shape[1]
+    heigh       = img.shape[0]
+
+    l_start = (0,
+               int(0.1 * heigh)
+               )
+    l_stop  = (int(chord_power * width),
+               int(0.1 * heigh)
+               )
+
+    cv.line(img,
+            l_start,
+            l_stop,
+            (92, 11, 44),
+            thickness = 3)
+
+    return img
+
+def draw_scale(img, args):
+    """ Add scale information to the image """
+    # Extract txt parameters
+    c_scale = args['scale']
+    height = img.shape[0]
+
+    # Prepare
+    txt = 'Current scale is: {}'.format(c_scale)
+
+    # Write
+    cv.putText(img,
+               txt,
+               (10, height - 10),
+               cv.FONT_HERSHEY_SIMPLEX,
+               0.66,
+               (0, 0, 0),
+               thickness = 2)
+
+    return img
+
 def make_single(args):
     """ Parallel ready single image generator """
     # We need this for proper file naming and clear logs
@@ -104,7 +146,8 @@ def make_single(args):
     img = cv.applyColorMap(ZZ, cv.COLORMAP_JET)
 
     # Add diagnostics
-    # img = draw_scale(img, args)
+    img = draw_scale(img, args)
+    img = draw_chord(img, args)
 
     # Save
     filename = 'imgs/{}.png'.format(int(1e7 + tick))
@@ -115,13 +158,11 @@ def main():
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Get notes
-    with open('jq_blompf_data.pickle') as fin:
+    with open('mo_blompf_data.pickle') as fin:
         scores = pickle.load(fin)
 
-    notes = scores['hand']
-
     # Generate movie factors
-    args = ua.notes2args(notes)[0:100]
+    args = ua.score2args(scores)[0:10]
 
     # Make only first howmany frames
     # args = args[0:200, :]
