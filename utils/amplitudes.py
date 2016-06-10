@@ -39,12 +39,15 @@ def notes2amps(notes):
 
     return lo_amp, mi_amp, hi_amp
 
-def amps2pams(lo, mi, hi):
-    """ Changes band amplitudes into per-frame parameters """
-    # In the simplest variant just use one band:
+def notes2angles(notes):
+    """ Create 2 dimensional parametrization from the blompf hand-notes"""
+    lo, mi, hi = notes2amps(notes)
+
+    # In the simplest variant you can just use one band:
     full = lo + mi + hi
     full = np.cumsum(full)
 
+    # But multiple are prefered
     lom = lo + mi
     lom = np.cumsum(lom)
 
@@ -55,21 +58,19 @@ def amps2pams(lo, mi, hi):
     phi = 4*np.pi * lom/lom[-1]
     the = 4*np.pi * mih/mih[-1]
 
-    # Enumeration iterator
-    its = range(len(full))
-
-    # Make it so every row of output contains parameter
-    # values for one frame of the movie
-    out = np.column_stack((phi, the, its))
-
-    return out
+    return phi, the
 
 def notes2args(notes):
     """ Take notes make args lol """
-    lo, mi, hi = notes2amps(notes)
-    args = amps2pams(lo, mi, hi)
+    phi, the = notes2angles(notes)
 
-    return args
+    # Per-frame arguments
+    out = []
+    for it in range(len(the)):
+        c_dict = {'phi' : phi[it], 'theta' : the[it], 'tick' : it}
+        out.append(c_dict)
+
+    return out
 
 def funfunfun(note):
     """ Change note into a 1d ADSR kind of function """
@@ -96,18 +97,20 @@ def funfunfun(note):
 
 def get_note_framespan(note):
     """ Go from ticks to frames """
-    # TODO abstract this out
-    tps = 2**5
-    fps = 30
     # Ticks
-    sta = note[1]
-    end = sta + note[2]
-
-    # Seconds .. Frames
-    sta /= 1.0 * tps
-    end /= 1.0 * tps
-    sta *= fps
-    end *= fps
+    sta = tick2frame(note[1])
+    end = sta + tick2frame(note[2])
 
     return int(sta), int(end)
+
+def tick2frame(tick):
+    """ Change time base """
+    # Those are constants
+    tps = 2**5
+    fps = 30
+
+    out = 1.0 * tick / tps
+    out *= fps
+
+    return int(out)
 

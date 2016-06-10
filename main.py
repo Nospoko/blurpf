@@ -17,9 +17,9 @@ def norm(this):
 def funky_image(args):
     """ Generate some funk """
     # De-serialize the arguments
-    phi     = args[0]/5.0
-    the     = args[1]/5.0
-    tick    = args[2]
+    phi     = args['phi']/5.0
+    the     = args['theta']/5.0
+    tick    = args['tick']
 
     # Set resolution
     if False:
@@ -56,7 +56,7 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 27
+    howmany = 7
     for it in range(howmany):
         the += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(the)
@@ -94,7 +94,7 @@ def funky_image(args):
 def make_single(args):
     """ Parallel ready single image generator """
     # We need this for proper file naming and clear logs
-    tick = args[2]
+    tick = args['tick']
     print tick
 
     # Create one frame
@@ -102,6 +102,9 @@ def make_single(args):
 
     # Color it up
     img = cv.applyColorMap(ZZ, cv.COLORMAP_JET)
+
+    # Add diagnostics
+    # img = draw_scale(img, args)
 
     # Save
     filename = 'imgs/{}.png'.format(int(1e7 + tick))
@@ -112,13 +115,13 @@ def main():
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Get notes
-    with open('wo_yo.pickle') as fin:
+    with open('jq_blompf_data.pickle') as fin:
         scores = pickle.load(fin)
 
     notes = scores['hand']
 
     # Generate movie factors
-    args = ua.notes2args(notes)
+    args = ua.notes2args(notes)[0:100]
 
     # Make only first howmany frames
     # args = args[0:200, :]
