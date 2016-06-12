@@ -58,7 +58,7 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 13
+    howmany = 7
     for it in range(howmany):
         the += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(the)
@@ -70,6 +70,11 @@ def funky_image(args):
 
         a_hahn.set_x_shift(ax_shift)
         a_hahn.set_y_shift(ay_shift)
+
+        # More movements
+        a_hahn._n = phi * 2
+
+        # Cumulate
         frames.append(a_hahn.get(XX, YY, tick))
 
     Z = np.zeros_like(frames[0])
@@ -170,7 +175,7 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)
+    args = ua.score2args(scores)[0:100]
 
     # Parallel
     pool = mp.Pool(processes = mp.cpu_count())

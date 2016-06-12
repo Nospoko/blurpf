@@ -66,7 +66,7 @@ def scales2words(scales):
                 }
 
     # Pre-alocate 
-    scale_numbers = np.chararray(full_len)
+    scale_numbers = np.empty(full_len, dtype='|S10')
 
     for scale in scales:
         sta, end = get_note_framespan(scale)
