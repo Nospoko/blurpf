@@ -89,9 +89,11 @@ def notes2angles(notes):
     mih = mi + hi
     mih = np.cumsum(mih)
 
-    # Make it go from 0 to 1
-    phi = 4*np.pi * lom/lom[-1]
-    the = 4*np.pi * mih/mih[-1]
+    # Make normalization framecunt dependant
+    # Make it 1 pi per thousand frames 
+    max_amp = np.pi * len(full) / 1000.0
+    phi = max_amp * lom/lom[-1]
+    the = max_amp * mih/mih[-1]
 
     return phi, the
 

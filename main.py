@@ -17,14 +17,16 @@ def norm(this):
 def funky_image(args):
     """ Generate some funk """
     # De-serialize the arguments
-    phi     = args['phi']/15.0
-    the     = args['theta']/15.0
+    phi     = args['phi']
+    the     = args['theta']
     tick    = args['tick']
 
     # Set resolution
     if False:
-        x_res = 1920
-        y_res = 1080
+        # x_res = 1920
+        # y_res = 1080
+        x_res = 1280
+        y_res = 720
     else:
         x_res = 390
         y_res = 280
@@ -160,7 +162,7 @@ def main():
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Point the blompf data
-    prefix = 'do'
+    prefix = 'au'
     blompf_path = prefix + '_blompf_data.pickle'
 
     # Get notes
