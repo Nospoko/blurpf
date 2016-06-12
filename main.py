@@ -22,7 +22,7 @@ def funky_image(args):
     tick    = args['tick']
 
     # Set resolution
-    if not False:
+    if False:
         x_res = 1920
         y_res = 1080
     else:
@@ -56,7 +56,7 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 7
+    howmany = 11
     for it in range(howmany):
         the += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(the)
@@ -146,27 +146,31 @@ def make_single(args):
     img = cv.applyColorMap(ZZ, cv.COLORMAP_JET)
 
     # Add diagnostics
-    img = draw_scale(img, args)
-    img = draw_chord(img, args)
+    DEBUG = True
+    if DEBUG:
+        img = draw_scale(img, args)
+        img = draw_chord(img, args)
 
     # Save
     filename = 'imgs/{}.png'.format(int(1e7 + tick))
     cv.imwrite(filename, img)
 
 def main():
-    """ blurp """
+    """ blurpf """
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
+    # Point the blompf data
+    prefix = 'kn'
+    blompf_path = prefix + '_blompf_data.pickle'
+
     # Get notes
-    with open('mo_blompf_data.pickle') as fin:
+    with open(blompf_path) as fin:
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)[0:10]
+    args = ua.score2args(scores)
 
-    # Make only first howmany frames
-    # args = args[0:200, :]
-
+    # Parallel
     pool = mp.Pool(processes = mp.cpu_count())
     pool.map(make_single, args)
 

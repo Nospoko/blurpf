@@ -2,25 +2,8 @@ import numpy as np
 
 def notes2amps(notes):
     """ Change blompfish notes into blurpish amps """
-    # FIXME from here to the full_len usage everything is shit
-    # blurp frames per second
-    fps = 30
-
-    # blompf ticks per second (this was found empirically wtf)
-    tps = 2**5
-
-    # Make sure notes are properly arranged
-    notes.sort(key = lambda x: x[1] + x[2])
-
-    # Prepare LO/MI/HI containers
-    # Movie length in blompf ticks
-    full_len = notes[-1][1] + notes[-1][2]
-    # in seconds
-    full_len /= 1.0 * tps
-
-    # Finally frames
-    full_len *= fps
-    full_len = int(full_len)
+    # Get number of frames in the movie
+    full_len = tick2frame(notes[-1][1] + notes[-1][2])
 
     # For now we want to create a 3-range visualizer thing
     lo_amp = np.zeros(full_len)
@@ -128,9 +111,11 @@ def score2args(score):
     # Prepare chord powers
     chord_powers = chords2angle(chords)
 
+    print len(phi), len(scale_numbers), len(chord_powers)
+
     # Per-frame arguments
     out = []
-    for it in range(len(the)):
+    for it in range(len(scale_numbers)):
         c_dict = {'phi'     : phi[it],
                   'theta'   : the[it],
                   'scale'   : scale_numbers[it],
@@ -149,8 +134,6 @@ def funfunfun(note):
     dziedzina = np.linspace(0, 1, lon)
 
     # Make y shape
-    # out = 0.2 * np.exp(-3.0 * dziedzina)
-
     do_me = (dziedzina - 0.1) / 0.5
     out = 0.1 + 0.2 * np.exp(-do_me**2)**2
 
@@ -158,7 +141,7 @@ def funfunfun(note):
     if note[3] < 90:
         out *= 0.5
 
-    # FIXME why is this here?
+    # FIXME This is bad for long but loud notes!!!
     out *= 32.0 / lon
 
     return out
@@ -167,7 +150,7 @@ def get_note_framespan(note):
     """ Go from ticks to frames """
     # Ticks
     sta = tick2frame(note[1])
-    end = sta + tick2frame(note[2])
+    end = tick2frame(note[2] + note[1])
 
     return int(sta), int(end)
 
