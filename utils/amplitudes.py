@@ -111,8 +111,6 @@ def score2args(score):
     # Prepare chord powers
     chord_powers = chords2angle(chords)
 
-    print len(phi), len(scale_numbers), len(chord_powers)
-
     # Per-frame arguments
     out = []
     for it in range(len(scale_numbers)):
@@ -130,11 +128,13 @@ def funfunfun(note):
     sta, end = get_note_framespan(note)
     lon = end - sta
 
+    # TODO Make the tail lenght dependant on the note volume !!!
+
     # Prepare x axis
-    dziedzina = np.linspace(0, 1, lon)
+    dziedzina = np.linspace(0, lon/16., lon)
 
     # Make y shape
-    do_me = (dziedzina - 0.1) / 0.5
+    do_me = (dziedzina - 0.05) / 0.5
     out = 0.1 + 0.2 * np.exp(-do_me**2)**2
 
     # Velocity related renormalization
@@ -142,7 +142,7 @@ def funfunfun(note):
         out *= 0.5
 
     # FIXME This is bad for long but loud notes!!!
-    out *= 32.0 / lon
+    out *= 0.5
 
     return out
 

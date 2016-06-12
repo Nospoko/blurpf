@@ -17,8 +17,8 @@ def norm(this):
 def funky_image(args):
     """ Generate some funk """
     # De-serialize the arguments
-    phi     = args['phi']/5.0
-    the     = args['theta']/5.0
+    phi     = args['phi']/15.0
+    the     = args['theta']/15.0
     tick    = args['tick']
 
     # Set resolution
@@ -31,7 +31,7 @@ def funky_image(args):
 
     # TODO Add at least 2 sound related variables here
     # Manipulate the visibility span
-    xspan = 9.5 - 5*np.sin(2*phi) * np.cos(the)
+    xspan = 12.5 - 5*np.sin(2*phi) * np.cos(the)
     xleft = -xspan - 0*np.sin(2*phi)
     xright = xspan - 0*np.sin(2*phi)
 
@@ -56,7 +56,7 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 11
+    howmany = 13
     for it in range(howmany):
         the += 2.0 * np.pi/howmany
         ax_shift = r_shift * np.cos(the)
@@ -137,7 +137,7 @@ def make_single(args):
     """ Parallel ready single image generator """
     # We need this for proper file naming and clear logs
     tick = args['tick']
-    print tick
+    print 'Current frame is :', tick
 
     # Create one frame
     ZZ = funky_image(args)
@@ -160,7 +160,7 @@ def main():
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Point the blompf data
-    prefix = 'kn'
+    prefix = 'do'
     blompf_path = prefix + '_blompf_data.pickle'
 
     # Get notes
