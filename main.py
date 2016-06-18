@@ -61,7 +61,8 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 21
+    howmany = 23
+    r_shift = 7
     for it in range(howmany):
         the += 2.0 * np.pi/howmany
 
@@ -76,7 +77,7 @@ def funky_image(args):
         a_hahn.set_y_shift(ay_shift)
 
         # More movements
-        # a_hahn._n = phi * 20
+        a_hahn._n = phi * 5
 
         # Cumulate
         frames.append(a_hahn.get(XX, YY, tick))
@@ -93,9 +94,9 @@ def funky_image(args):
     Z = np.sqrt(Z)
     Z *= treshold
 
-    # Now when it is normalized to 110 we can adjust some intensities
+    # Now when it is normalized to threshold we can adjust some intensities
     # Lets say we want the mean to oscillate around 60
-    deficit = 60 - Z.mean()
+    deficit = 120 - Z.mean()
     Z += deficit
     ids = Z > treshold
     Z[ids] -= deficit
@@ -145,6 +146,30 @@ def draw_scale(img, args):
 
     return img
 
+def color_up(gray, args):
+    """ Change flat image into a RGB array """
+    tick = args['tick']
+
+    # Color-up to 3D
+    c_path_a = 'colormaps/blues.cmap'
+    c_path_b = 'colormaps/fire.cmap'
+    cmap_a = uc.read_colormap(c_path_a)
+    cmap_b = uc.read_colormap(c_path_b)
+
+    alpha = 1.0 * tick / 100
+    asd = np.cos(np.pi * alpha)**2
+    cmap = cmap_a * asd + cmap_b * (1.0 - asd)
+    cmap = cmap.astype(int)
+
+    # Use colormaps as look-up-tables
+    imr = cv.LUT(gray, cmap[:, 0])
+    img = cv.LUT(gray, cmap[:, 1])
+    imb = cv.LUT(gray, cmap[:, 2])
+
+    out = np.dstack((imr, img, imb))
+
+    return out
+
 def make_single(args):
     """ Parallel ready single image generator """
     # We need this for proper file naming and clear logs
@@ -154,14 +179,8 @@ def make_single(args):
     # Create one frame (1D)
     ZZ = funky_image(args)
 
-    # Color-up to 3D
-    cmap = uc.read_colormap('colormaps/kryptonite.cmap')
-
-    imr = cv.LUT(ZZ, cmap[:, 0])
-    img = cv.LUT(ZZ, cmap[:, 1])
-    imb = cv.LUT(ZZ, cmap[:, 2])
-
-    img = np.dstack((imr, img, imb))
+    # Add colors
+    img = color_up(ZZ, args)
 
     # Add diagnostics
     DEBUG = not True
@@ -186,7 +205,7 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)[0:150]
+    args = ua.score2args(scores)[0:666]
 
     # Parallel
     pool = mp.Pool(processes = mp.cpu_count())
