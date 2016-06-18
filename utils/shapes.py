@@ -64,7 +64,7 @@ class Hahn(FunkyFunction):
 
         rad = x**2 + y**2
 
-        phase_shift = nn * np.pi/20
+        phase_shift = nn
         # out = np.sin(kk * rad + 0*tick/rr)
         out = np.zeros_like(rad)
 

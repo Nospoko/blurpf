@@ -2,6 +2,7 @@ import pickle
 import cv2 as cv
 import numpy as np
 import multiprocessing as mp
+from utils import colors as uc
 from scipy import signal as ss
 from utils import signal as us
 from utils import shapes as yo
@@ -16,9 +17,11 @@ def norm(this):
 
 def funky_image(args):
     """ Generate some funk """
+    # Speed-up useful for debug mode
+    speedup = 3
     # De-serialize the arguments
-    phi     = args['phi']
-    the     = args['theta']
+    phi     = speedup * args['phi']
+    the     = speedup * args['theta']
     tick    = args['tick']
 
     # Set resolution
@@ -33,7 +36,7 @@ def funky_image(args):
 
     # TODO Add at least 2 sound related variables here
     # Manipulate the visibility span
-    xspan = 12.5 - 5*np.sin(2*phi) * np.cos(the)
+    xspan = 7.5 - 0*np.sin(2*phi) * np.cos(the)
     xleft = -xspan - 0*np.sin(2*phi)
     xright = xspan - 0*np.sin(2*phi)
 
@@ -49,7 +52,7 @@ def funky_image(args):
     # r_shift = 14 + 3 * np.cos(the)
     r_shift = 10 + 4 * abs(ss.sawtooth(the + phi))
 
-    a_hahn = yo.Hahn(k = 0.5, r = 5, m = 25)
+    a_hahn = yo.Hahn(k = 0.5, r = 5, m = 17)
 
     # Some factors
     freqs = [0.5  for it in range(20)]
@@ -58,9 +61,10 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 7
+    howmany = 21
     for it in range(howmany):
         the += 2.0 * np.pi/howmany
+
         ax_shift = r_shift * np.cos(the)
         ay_shift = r_shift * np.sin(the)
 
@@ -72,7 +76,7 @@ def funky_image(args):
         a_hahn.set_y_shift(ay_shift)
 
         # More movements
-        a_hahn._n = phi * 2
+        # a_hahn._n = phi * 20
 
         # Cumulate
         frames.append(a_hahn.get(XX, YY, tick))
@@ -83,16 +87,17 @@ def funky_image(args):
         Z += frame
 
     # le normalizatione
+    treshold = 255
     Z -= Z.min()
     Z /= Z.max()
     Z = np.sqrt(Z)
-    Z *= 110
+    Z *= treshold
 
     # Now when it is normalized to 110 we can adjust some intensities
     # Lets say we want the mean to oscillate around 60
     deficit = 60 - Z.mean()
     Z += deficit
-    ids = Z > 110
+    ids = Z > treshold
     Z[ids] -= deficit
 
     # OpenCV likes uint8
@@ -146,14 +151,20 @@ def make_single(args):
     tick = args['tick']
     print 'Current frame is :', tick
 
-    # Create one frame
+    # Create one frame (1D)
     ZZ = funky_image(args)
 
-    # Color it up
-    img = cv.applyColorMap(ZZ, cv.COLORMAP_JET)
+    # Color-up to 3D
+    cmap = uc.read_colormap('colormaps/kryptonite.cmap')
+
+    imr = cv.LUT(ZZ, cmap[:, 0])
+    img = cv.LUT(ZZ, cmap[:, 1])
+    imb = cv.LUT(ZZ, cmap[:, 2])
+
+    img = np.dstack((imr, img, imb))
 
     # Add diagnostics
-    DEBUG = True
+    DEBUG = not True
     if DEBUG:
         img = draw_scale(img, args)
         img = draw_chord(img, args)
@@ -175,7 +186,7 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)[0:100]
+    args = ua.score2args(scores)[0:150]
 
     # Parallel
     pool = mp.Pool(processes = mp.cpu_count())
