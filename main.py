@@ -148,11 +148,23 @@ def draw_scale(img, args):
 
 def color_up(gray, args):
     """ Change flat image into a RGB array """
-    tick = args['tick']
+    # Unpack factors
+    tick        = args['tick']
+    # TODO Implement all of those!
+    # proportion  = args['color_ratio']
+    # color_a     = args['color_a']
+    # color_b     = args['color_b']
 
     # Color-up to 3D
-    c_path_a = 'colormaps/blues.cmap'
-    c_path_b = 'colormaps/fire.cmap'
+    cmaps = {
+            0 : 'colormaps/blues.cmap',
+            1 : 'colormaps/fire.cmap',
+            2 : 'colormaps/reds.cmap',
+            3 : 'colormaps/seashore.cmap'
+            }
+
+    c_path_a = cmaps[2]
+    c_path_b = cmaps[1]
     cmap_a = uc.read_colormap(c_path_a)
     cmap_b = uc.read_colormap(c_path_b)
 
@@ -205,7 +217,7 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)[0:666]
+    args = ua.score2args(scores)[0:106]
 
     # Parallel
     pool = mp.Pool(processes = mp.cpu_count())

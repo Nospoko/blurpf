@@ -42,6 +42,23 @@ def chords2angle(chords):
 
     return chord_p
 
+def scales2color_proportions(scales):
+    """ Change scale notes into colormap dividing facotor """
+    # Calculate total number of frames in this blurpf animation
+    full_len = tick2frame(scales[-1][1] + scales[-1][2])
+    full_len = int(full_len)
+
+    # Prepare output (colormap proportions)
+    c_proportions = np.zeros(full_len)
+
+    for note in scales:
+        sta, end = get_note_framespan(note)
+        curv = grow_up(note)
+
+        c_proportions[sta : end] = curv
+
+    return c_proportions
+
 def scales2words(scales):
     """ Change blompf scale data into view-able information """
     # Calculate total number of frames in this blurpf animation
@@ -111,6 +128,10 @@ def score2args(score):
     scale_numbers = scales2words(scales)
 
     # Prepare chord powers
+    # TODO
+    # color ids should change only when propotions reach 0/1
+    color_a, color_b = scales2colors(scales)
+    proportions = scales2color_proportions(scales)
     chord_powers = chords2angle(chords)
 
     # Per-frame arguments
@@ -125,6 +146,17 @@ def score2args(score):
 
     return out
 
+def grow_up(note):
+    """ Change note into exp(x) going 0->1 on the full note-length """
+    sta, end = get_note_framespan(note)
+    lon = end - sta
+
+    x = np.linspace(0, 1, lon)
+    scale = 4
+    y = (np.exp(x * scale) - 1) / (np.exp(scale) - 1 )
+
+    return y
+
 def funfunfun(note):
     """ Change note into a 1d ADSR kind of function """
     sta, end = get_note_framespan(note)
@@ -133,11 +165,11 @@ def funfunfun(note):
     # TODO Make the tail lenght dependant on the note volume !!!
 
     # Prepare x axis
-    dziedzina = np.linspace(0, lon/16., lon)
+    x = np.linspace(0, lon/16., lon)
 
     # Make y shape
-    do_me = (dziedzina - 0.05) / 0.5
-    out = 0.1 + 0.2 * np.exp(-do_me**2)**2
+    x = (x - 0.05) / 0.5
+    out = 0.1 + 0.2 * np.exp(-x**2)**2
 
     # Velocity related renormalization
     if note[3] < 90:
