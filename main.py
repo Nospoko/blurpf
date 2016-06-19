@@ -177,7 +177,7 @@ def color_up(gray, args):
     cmap_b = uc.read_colormap(c_path_b)
 
     asd = proportion
-    cmap = cmap_a * asd + cmap_b * (1.0 - asd)
+    cmap = cmap_a * (1.0 - asd) + cmap_b * asd
     cmap = cmap.astype(int)
 
     # Use colormaps as look-up-tables
