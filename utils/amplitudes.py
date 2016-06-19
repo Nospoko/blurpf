@@ -59,6 +59,26 @@ def scales2color_proportions(scales):
 
     return c_proportions
 
+def scales2colors(scales):
+    """ Change scales into colormap ids """
+    # Calculate total number of frames in this blurpf animation
+    full_len = tick2frame(scales[-1][1] + scales[-1][2])
+    full_len = int(full_len)
+
+    # Prepare output (colormap ids)
+    color_a = np.zeros(full_len)
+    color_b = np.zeros(full_len)
+
+    for it in range(len(scales)-1):
+        sta, end = get_note_framespan(scales[it])
+        color_a[sta : end] = scales[it][0] - 60
+        color_b[sta : end] = scales[it+1][0] - 60
+
+    color_a[end : ] = scales[-1][0] - 60
+    color_b[end : ] = scales[-1][0] - 60
+
+    return color_a, color_b
+
 def scales2words(scales):
     """ Change blompf scale data into view-able information """
     # Calculate total number of frames in this blurpf animation
@@ -141,6 +161,9 @@ def score2args(score):
                   'theta'   : the[it],
                   'scale'   : scale_numbers[it],
                   'ch_pow'  : chord_powers[it],
+                  'color_a' : color_a[it],
+                  'color_b' : color_b[it],
+                  'c_prop'  : proportions[it],
                   'tick'    : it}
         out.append(c_dict)
 

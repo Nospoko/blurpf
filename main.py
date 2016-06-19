@@ -151,25 +151,32 @@ def color_up(gray, args):
     # Unpack factors
     tick        = args['tick']
     # TODO Implement all of those!
-    # proportion  = args['color_ratio']
-    # color_a     = args['color_a']
-    # color_b     = args['color_b']
+    proportion  = args['c_prop']
+    color_a     = args['color_a']
+    color_b     = args['color_b']
 
     # Color-up to 3D
     cmaps = {
             0 : 'colormaps/blues.cmap',
             1 : 'colormaps/fire.cmap',
             2 : 'colormaps/reds.cmap',
-            3 : 'colormaps/seashore.cmap'
+            3 : 'colormaps/seashore.cmap',
+            4 : 'colormaps/teals.cmap',
+            5 : 'colormaps/purples.cmap',
+            6 : 'colormaps/ice.cmap',
+            7 : 'colormaps/dusk.cmap',
+            8 : 'colormaps/dawn.cmap',
+            9 : 'colormaps/greens.cmap',
+            10 : 'colormaps/golds.cmap',
+            11 : 'colormaps/redblue.cmap'
             }
 
-    c_path_a = cmaps[2]
-    c_path_b = cmaps[1]
+    c_path_a = cmaps[color_a]
+    c_path_b = cmaps[color_b]
     cmap_a = uc.read_colormap(c_path_a)
     cmap_b = uc.read_colormap(c_path_b)
 
-    alpha = 1.0 * tick / 100
-    asd = np.cos(np.pi * alpha)**2
+    asd = proportion
     cmap = cmap_a * asd + cmap_b * (1.0 - asd)
     cmap = cmap.astype(int)
 
@@ -209,7 +216,7 @@ def main():
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Point the blompf data
-    prefix = 'au'
+    prefix = 'qb'
     blompf_path = prefix + '_blompf_data.pickle'
 
     # Get notes
@@ -217,7 +224,7 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)[0:106]
+    args = ua.score2args(scores)[0:1000]
 
     # Parallel
     pool = mp.Pool(processes = mp.cpu_count())
