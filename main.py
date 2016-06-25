@@ -16,7 +16,7 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)[0:1000]
+    args = ua.score2args(scores)[0:100]
 
     # Parallel
     pool = mp.Pool(processes = mp.cpu_count())

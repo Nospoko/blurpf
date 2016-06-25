@@ -21,9 +21,9 @@ class FunkyFunction(object):
         self.x_shift = 0
         self.y_shift = 0
 
-    def get(self, x, y, tick):
+    def get(self, x, y):
         """ Call this to get the matrix """
-        # x and y must be copied to apply shifts savely
+        # x and y must be copied to apply shifts safely
         xx = np.empty_like(x)
         yy = np.empty_like(y)
         xx[:] = x
@@ -33,9 +33,9 @@ class FunkyFunction(object):
         xx += self.x_shift
         yy += self.y_shift
 
-        return self.make(xx, yy, tick)
+        return self.make(xx, yy)
 
-    def make(self, x, y, tick):
+    def make(self, x, y):
         """ Implement this with some funky functions """
         print 'major fuckup'
 
@@ -54,27 +54,26 @@ class Hahn(FunkyFunction):
     in Chemistry in 1944 for the discovery and the radiochemical
     proof of nuclear fission.
     """
-    def make(self, x, y, tick):
-        """ Gets the shape at time tick """
+    def make(self, x, y):
+        """ Gets the shape """
         # Simplify notation
         mm = self._m
         nn = self._n
         kk = self._k * 0.3
         rr = self._r
 
-        rad = x**2 + y**2
+        rad = np.sqrt(x**2 + y**2)
 
         phase_shift = nn
-        # out = np.sin(kk * rad + 0*tick/rr)
         out = np.zeros_like(rad)
 
-        evens = range(mm)[2::2]
+        # evens = range(-mm, mm)[2::2]
+        evens = range(-mm, mm)
 
         for it in evens:
-            out += 1./it *  np.cos(kk*it * rad + phase_shift)
-        # out += 0.2 * np.cos(kk* 2.33 * (x**mm + y**nn) + tick/rr/2.)
-        # out += 0.4 * np.cos(kk* 4.33 * (x**mm + y**nn) + tick/rr/0.8)
-        # out = np.sin(kk * (x**mm + y**nn) + np.sin(tick/rr))
+            # out += 1.0/kk * np.cos(it/kk * rad + phase_shift)
+            out += 1.0/kk * np.sin(it/kk * rad + phase_shift)
+
         return out**1
 
 class Fritz(FunkyFunction):
@@ -85,12 +84,12 @@ class Fritz(FunkyFunction):
     which, when confirmed, demonstrated the previously unknown
     phenomenon of nuclear fission.
     """
-    def make(self, x, y, tick):
+    def make(self, x, y):
         """ Get it """
         # Simplify notation
         mm = self._m
         nn = self._n
-        out = (x**2 + y**2) * np.cos(1. * tick/nn + mm * np.arctan2(x, y))
+        out = (x**2 + y**2) * np.cos(mm * np.arctan2(x, y))
         return out
 
 class Meitner(FunkyFunction):
@@ -101,11 +100,11 @@ class Meitner(FunkyFunction):
     nuclear fission of uranium when it absorbed an extra neutron;
     the results were published in early 1939.
     """
-    def make(self, x, y, tick):
+    def make(self, x, y):
         """ yo """
         # Simplify notation
         mm = self._m
         nn = self._n
-        out = np.sin(x*y) * np.cos(tick/nn + mm * np.arctan2(x, y))
+        out = np.sin(x*y) * np.cos(mm * np.arctan2(x, y))
         return out
 

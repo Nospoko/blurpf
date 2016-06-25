@@ -47,7 +47,7 @@ def funky_image(args):
     # r_shift = 14 + 3 * np.cos(the)
     r_shift = 10 + 4 * abs(ss.sawtooth(the + phi))
 
-    a_hahn = yo.Hahn(k = 0.5, r = 5, m = 17)
+    a_hahn = yo.Hahn(k = 3, r = 5, m = 5)
 
     # Some factors
     freqs = [0.5  for it in range(20)]
@@ -56,7 +56,7 @@ def funky_image(args):
     # Partial drawings container
     frames = []
 
-    howmany = 3
+    howmany = 5
     r_shift = 7
     for it in range(howmany):
         the += 2.0 * np.pi/howmany
@@ -72,10 +72,10 @@ def funky_image(args):
         a_hahn.set_y_shift(ay_shift)
 
         # More movements
-        a_hahn._n = phi * 5
+        a_hahn._n = phi * 10
 
         # Cumulate
-        frames.append(a_hahn.get(XX, YY, tick))
+        frames.append(a_hahn.get(XX, YY))
 
     Z = np.zeros_like(frames[0])
 
@@ -91,10 +91,10 @@ def funky_image(args):
 
     # Now when it is normalized to threshold we can adjust some intensities
     # Lets say we want the mean to oscillate around 60
-    deficit = 120 - Z.mean()
-    Z += deficit
-    ids = Z > treshold
-    Z[ids] -= deficit
+    # deficit = 120 - Z.mean()
+    # Z += deficit
+    # ids = Z > treshold
+    # Z[ids] -= deficit
 
     # OpenCV likes uint8
     return np.uint8(np.abs(Z))
