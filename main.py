@@ -20,33 +20,31 @@ def make_single(args):
 
     x = t
     y = np.zeros_like(t)
-    z_a = 2 * np.ones_like(t)
-    z_b = -2 * np.ones_like(t)
+    eye = np.ones_like(t)
+    yo = np.linspace(-1, 1, 500)
 
-    z_c = np.zeros_like(t)
-    for it in range(10):
-        # z_a += 1./(1+it) * np.sin( it*x + 2*phi)
-        z_c += 1./(1+it) * np.cos( it*x + 2*phi)
+    z_c = np.cos(0.7*t + 2*phi) * np.sin(1.4*t - 2*phi) / (1+np.sin(t)**2)
+    y_c = np.sin(t + 3 * phi) * np.cos(0.5 *t - 2*phi) / (1+np.sin(t)**2)
 
     z_c *= np.exp(-t**2)
-    z_c *= 2./max(abs(z_c))
+    z_c *= 1./max(abs(z_c))
 
-    # z_a *= np.exp(-x**2)
-    # z_b *= np.exp(-x**2)
-    #
-    # z_a /= max(z_a)
-    # z_b /= max(z_b)
+    y_c *= np.exp(-t**2)
+    y_c *= 1./max(abs(y_c))
 
     s = t
 
     # extent = [-1, 1, -1, 1, -1, 1]
-    mlab.plot3d(x, y, z_a, s)
-    mlab.plot3d(x, y, z_b, s)
-    mlab.plot3d(y, z_a, x, s)
-    mlab.plot3d(y, z_b, x, s)
+    mlab.plot3d(x, y, 2*eye)
+    mlab.plot3d(x, y, -2*eye)
+    mlab.plot3d(-3.14*eye, y, 2*yo)
+    mlab.plot3d(3.14*eye, y, 2*yo)
+    mlab.plot3d(3.14*eye, 2*yo, 2*eye)
+    mlab.plot3d(-3.14*eye, 2*yo, 2*eye)
 
-    mlab.plot3d(x, y, z_c, s)
-    mlab.plot3d(x, z_c, y, s)
+
+    mlab.plot3d(x, y_c, z_c, s)
+    mlab.plot3d(x, y_c, - z_c, np.cos(s))
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
     mlab.savefig(savepath)
@@ -64,7 +62,7 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)[0:200]
+    args = ua.score2args(scores)[:20]
 
     # Not parallel
     # FIXME how to make hd aspect-ratio?
