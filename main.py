@@ -16,6 +16,9 @@ def soliton(x, t):
 
 def make_single(args):
     """ Mayavi tryouts """
+    res = 500
+    eye = np.ones(res)
+
     # De-serialize arguments
     phi = args['phi'] * 5
     tick = args['tick']
@@ -23,39 +26,39 @@ def make_single(args):
     # Make clear figure
     mlab.clf()
 
-    res = 500
+    # Camera angle?
+    mlab.view(90.0, 70 + 2*tick, 16.0)
 
-    x = np.linspace(-3.1399, 3.14, res)
+    # Draw the 3d box to solve scaling problems
+    box_span = np.linspace(-5, 5, res)
+    # X-dir
+    mlab.plot3d(box_span, 0 * eye, - 5 * eye, tube_radius=0.00001)
+    mlab.plot3d(box_span, 0 * eye, + 5 * eye, tube_radius=0.00001)
+    # Y-dir
+    mlab.plot3d(- 5 * eye, box_span, 0 * eye, tube_radius=0.00001)
+    mlab.plot3d(+ 5 * eye, box_span, 0 * eye, tube_radius=0.00001)
+    # Z-dir
+    mlab.plot3d(- 5 * eye, 0 * eye, box_span, tube_radius=0.00001)
+    mlab.plot3d(+ 5 * eye, 0 * eye, box_span, tube_radius=0.00001)
 
-    y = np.zeros_like(x)
-    eye = np.ones_like(x)
-    yo = np.linspace(-1, 1, res)
+    x = np.linspace(-5, 5, res)
 
     t = np.linspace(0, 10, res)
-    where = 2 + 6 * tick/100.0
+    where = 5 + 4 * np.cos(5*phi)
     theta = soliton(t, where)
 
-    where_b = 8 - 6 * tick/100.0
+    where_b = 5 - 4 * np.cos(5*phi)
     theta += soliton(t, where_b)
 
-    y_c = np.cos(theta)
-    z_c = np.sin(theta)
+    y_c = 0.4*np.cos(theta) + 0.1 * np.sin(7*x - 3*phi)
+    z_c = 0.5*np.sin(theta) + 0.1 * np.cos(5*x + 5*phi)
 
     s = np.gradient(theta)
 
-    # extent = [-1, 1, -1, 1, -1, 1]
-    mlab.plot3d(1.2*x, y, 3*eye)
-    mlab.plot3d(1.2*x, y, -3*eye)
-
-    mlab.plot3d(-1.2*3.14*eye, y, 3*yo)
-    mlab.plot3d(1.2*3.14*eye, y, 3*yo)
-
-    mlab.plot3d(1.2*3.14*eye, 2*yo, 2*eye)
-    mlab.plot3d(-1.2*3.14*eye, 2*yo, 2*eye)
-
-
     # mlab.plot3d(x, y_c, z_c, s, colormap='Blues')
     mlab.plot3d(x, y_c, z_c, s, colormap='Greens', tube_radius=0.02)
+    mlab.plot3d(x, y_c -0.2, z_c+0.3, s, colormap='Reds', tube_radius=0.02)
+    mlab.plot3d(x, y_c+0.2, z_c-0.3, s, colormap='Blues', tube_radius=0.02)
     # mlab.plot3d(x, y_c + 2, z_d, s, colormap='Reds')
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
@@ -74,13 +77,11 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)[:100]
+    args = ua.score2args(scores)[:60]
 
     # Not parallel
     # FIXME how to make hd aspect-ratio?
-    mlab.figure(fgcolor=(1, 1, 1), bgcolor=(0, 0, 0), size=(600, 600))
-    # Camera angle?
-    mlab.view(80.0, 70.0, 16.0)
+    mlab.figure(fgcolor=(1, 1, 1), bgcolor=(0, 0, 0), size=(700, 700))
 
     for arg in args:
         print arg['tick']
