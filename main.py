@@ -7,10 +7,17 @@ from utils import amplitudes as ua
 # Without this graphics must be shown on screen for some reason
 # mlab.options.offscreen = True
 
-def soliton(x, t):
+def rotate_x(y, z, theta):
+    """ Rotate around the x-axis """
+    y_out = np.cos(theta) * y - np.sin(theta) * z
+    z_out = np.sin(theta) * y + np.cos(theta) * z
+
+    return y_out, z_out
+
+def soliton(x, where):
     """ Sine-Gordon equation solutions """
     v = 0.9
-    out = 4 * np.arctan(np.exp(-(x - v * t)/np.sqrt(1-v**2)))
+    out = 4 * np.arctan(np.exp(-(x - v * where)/np.sqrt(1-v**2)))
 
     return out
 
@@ -27,7 +34,10 @@ def make_single(args):
     mlab.clf()
 
     # Camera angle?
-    mlab.view(90.0, 70 + 2*tick, 16.0)
+    # Zenith angle [0-180]
+    azimuth = 69
+    elevation = 90 + 0 * np.sin(phi)
+    mlab.view(azimuth, elevation, 16.0)
 
     # Draw the 3d box to solve scaling problems
     box_span = np.linspace(-5, 5, res)
@@ -41,25 +51,46 @@ def make_single(args):
     mlab.plot3d(- 5 * eye, 0 * eye, box_span, tube_radius=0.00001)
     mlab.plot3d(+ 5 * eye, 0 * eye, box_span, tube_radius=0.00001)
 
+    # Create angular solitons
+    t = np.linspace(0, 20, res)
+    where_a = 10 + 4 * np.cos(5*phi)
+    theta_a = soliton(t, where_a)
+
+    where_b = 10 - 4 * np.cos(5*phi)
+    theta_b = soliton(t, where_b) + 4*np.pi/3
+
+    where_c = 8 + 7 * np.sin(6*phi)
+    theta_c = soliton(t, where_c) + 2*np.pi/3
+
     x = np.linspace(-5, 5, res)
+    # TODO add rotations of given lines and we're golden
+    y_red = np.cos(theta_a) + 0.09 * np.sin(7*x - 3*phi)
+    z_red = np.sin(theta_a) + 0.1 * np.cos(5*x + 5*phi)
 
-    t = np.linspace(0, 10, res)
-    where = 5 + 4 * np.cos(5*phi)
-    theta = soliton(t, where)
+    y_blue = np.cos(theta_b) + 0.13 * np.cos(6*x + 4*phi)
+    z_blue = np.sin(theta_b) + 0.12 * np.sin(6*x + 4*phi)
+    y_blue, z_blue = rotate_x(y_blue, z_blue, 4*np.pi/3)
 
-    where_b = 5 - 4 * np.cos(5*phi)
-    theta += soliton(t, where_b)
+    y_green = np.cos(theta_c) + 0.12 * np.sin(8*x + 3*phi)
+    z_green = np.sin(theta_c) + 0.11 * np.cos(2*x - 4*phi)
+    y_green, z_green = rotate_x(y_green, z_green, 2*np.pi/3)
 
-    y_c = 0.4*np.cos(theta) + 0.1 * np.sin(7*x - 3*phi)
-    z_c = 0.5*np.sin(theta) + 0.1 * np.cos(5*x + 5*phi)
+    s_a = np.gradient(theta_a)
+    s_b = np.gradient(theta_b)
+    s_c = np.gradient(theta_c)
 
-    s = np.gradient(theta)
-
-    # mlab.plot3d(x, y_c, z_c, s, colormap='Blues')
-    mlab.plot3d(x, y_c, z_c, s, colormap='Greens', tube_radius=0.02)
-    mlab.plot3d(x, y_c -0.2, z_c+0.3, s, colormap='Reds', tube_radius=0.02)
-    mlab.plot3d(x, y_c+0.2, z_c-0.3, s, colormap='Blues', tube_radius=0.02)
-    # mlab.plot3d(x, y_c + 2, z_d, s, colormap='Reds')
+    # One
+    mlab.plot3d(x, y_green, z_green, s_c,
+                colormap='Greens',
+                tube_radius=0.02)
+    # Two
+    mlab.plot3d(x, y_red, z_red, s_a,
+                colormap='Reds',
+                tube_radius=0.02)
+    # Three
+    mlab.plot3d(x, y_blue, z_blue, s_b,
+                colormap='Blues',
+                tube_radius=0.02)
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
     mlab.savefig(savepath)
@@ -77,7 +108,7 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = ua.score2args(scores)[:60]
+    args = ua.score2args(scores)[:160]
 
     # Not parallel
     # FIXME how to make hd aspect-ratio?
