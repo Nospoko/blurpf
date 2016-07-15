@@ -31,15 +31,17 @@ def make_box():
     # Draw the 3d box to solve scaling problems
     box_span = np.linspace(-width, width, res)
 
+    # TODO Make them black! genius
+    r_tube = 1e-8
     # X-dir
-    mlab.plot3d(box_span, 0 * eye, - width * eye, tube_radius=0.00001)
-    mlab.plot3d(box_span, 0 * eye, + width * eye, tube_radius=0.00001)
+    mlab.plot3d(box_span, 0 * eye, - width * eye, tube_radius=r_tube)
+    mlab.plot3d(box_span, 0 * eye, + width * eye, tube_radius=r_tube)
     # Y-dir
-    mlab.plot3d(- width * eye, box_span, 0 * eye, tube_radius=0.00001)
-    mlab.plot3d(+ width * eye, box_span, 0 * eye, tube_radius=0.00001)
+    mlab.plot3d(- width * eye, box_span, 0 * eye, tube_radius=r_tube)
+    mlab.plot3d(+ width * eye, box_span, 0 * eye, tube_radius=r_tube)
     # Z-dir
-    mlab.plot3d(- width * eye, 0 * eye, box_span, tube_radius=0.00001)
-    mlab.plot3d(+ width * eye, 0 * eye, box_span, tube_radius=0.00001)
+    mlab.plot3d(- width * eye, 0 * eye, box_span, tube_radius=r_tube)
+    mlab.plot3d(+ width * eye, 0 * eye, box_span, tube_radius=r_tube)
 
 def set_camera_position(args):
     """ Filming angles, pro-shot illusions """
@@ -80,27 +82,28 @@ def make_single(args):
     # TODO add rotations of given lines and we're golden
     y_red = 1.2*np.cos(theta_a)-1 + 0.09 * np.sin(7*x - 3*phi)
     z_red = 1.2*np.sin(theta_a) + 0.01 * np.cos(5*x + 5*phi)
+    y_red, z_red = rotate_x(y_red, z_red, tick/17.0)
 
     where_b = 10 - 4 * np.cos(5*phi)
     theta_b = soliton(t, where_b)
 
     y_blue = 1.4*np.cos(theta_b)-1.2 + 0.03 * np.cos(6*x + 4*phi)
     z_blue = np.sin(theta_b) + 0.02 * np.sin(6*x + 4*phi)
-    y_blue, z_blue = rotate_x(y_blue, z_blue, 2*np.pi/5)
+    y_blue, z_blue = rotate_x(y_blue, z_blue, 2*np.pi/5 + tick/13.0)
 
     where_c = 8 + 7 * np.sin(6*phi)
     theta_c = soliton(t, where_c) + 0*np.pi/3
 
     y_green = 1.5*np.cos(theta_c)-1.3 + 0.02 * np.sin(8*x + 3*phi)
     z_green = 1.5*np.sin(theta_c) + 0.01 * np.cos(2*x - 4*phi)
-    y_green, z_green = rotate_x(y_green, z_green, 4*np.pi/5)
+    y_green, z_green = rotate_x(y_green, z_green, 4*np.pi/5 + tick/15.0)
 
     where_d = 12 + 6 * np.sin(8*phi)
     theta_d = soliton(t, where_d) + 0*np.pi/3
 
     y_pink = 1.3*np.cos(theta_d)-1.1 + 0.02 * np.sin(8*x + 3*phi)
     z_pink = 1.3*np.sin(theta_d) + 0.04 * np.cos(2*x - 4*phi)
-    y_pink, z_pink = rotate_x(y_pink, z_pink, 6*np.pi/5)
+    y_pink, z_pink = rotate_x(y_pink, z_pink, 6*np.pi/5 + tick/20.0)
 
     s_a = np.gradient(theta_a)
     s_b = np.gradient(theta_b)
@@ -109,20 +112,20 @@ def make_single(args):
 
     # One
     mlab.plot3d(x, y_green, z_green, s_c,
-                colormap='Greens',
-                tube_radius=0.03)
+                colormap='Blues',
+                tube_radius=0.04)
     # Two
     mlab.plot3d(x, y_red, z_red, s_a,
-                colormap='Reds',
+                colormap='Blues',
                 tube_radius=0.034)
     # Three
     mlab.plot3d(x, y_blue, z_blue, s_b,
                 colormap='Blues',
-                tube_radius=0.029)
+                tube_radius=0.039)
     # 4 
     mlab.plot3d(x, y_pink, z_pink, s_d,
-                colormap='gist_rainbow',
-                tube_radius=0.039)
+                colormap='Blues',
+                tube_radius=0.035)
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
     mlab.savefig(savepath)
