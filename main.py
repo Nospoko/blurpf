@@ -2,10 +2,41 @@ import pickle
 import numpy as np
 from mayavi import mlab
 import multiprocessing as mp
+from utils import colors as uc
 from utils import amplitudes as ua
 
 # Without this graphics must be shown on screen for some reason
 # mlab.options.offscreen = True
+
+def scores2args(scores):
+    """ Change notes into animation defining arguments """
+    # Unpack
+    fingers = scores['fingers']
+    # FIXME make sure all the fingers notes end at the same tick!
+    # First finger, last note, start + length
+    last = fingers[0][-1][1] + fingers[0][-1][2]
+    full_len = ua.tick2frame(last)
+
+    # Create position parametrization
+    positions = []
+    for notes in fingers:
+        # Prepare container for per-frame parameters
+        pos = np.zeros(full_len)
+        for note in notes:
+            sta, end = ua.get_note_framespan(note)
+            pos[sta : end] = note[0]
+
+        positions.append(pos)
+
+    amps = []
+    for notes in fingers:
+        amp = np.zeros(full_len)
+        for note in notes:
+            sta, end = ua.get_note_framespan(note)
+            amp[sta : end] = ua.fade_down(note)
+        amps.append(amp)
+
+    return positions, amps
 
 def rotate_x(y, z, theta):
     """ Rotate around the x-axis """
@@ -74,16 +105,38 @@ def make_single(args):
     make_box()
 
     # Create angular solitons
+    # This space need to cover the whole piano span
     t = np.linspace(0, 20, res)
+    # This is the visual span
     x = np.linspace(-5, 5, res)
 
+    # make_soliton(pos, amp, phase, color)
+
+    # One 
+    # Position
     where_a = 10 + 4 * np.cos(5*phi)
     theta_a = soliton(t, where_a)
-    # TODO add rotations of given lines and we're golden
-    y_red = 1.2*np.cos(theta_a)-1 + 0.09 * np.sin(7*x - 3*phi)
-    z_red = 1.2*np.sin(theta_a) + 0.01 * np.cos(5*x + 5*phi)
-    y_red, z_red = rotate_x(y_red, z_red, tick/17.0)
 
+    y_a = 1.2*np.cos(theta_a)-1 + 0.09 * np.sin(7*x - 3*phi)
+    z_a = 1.2*np.sin(theta_a) + 0.01 * np.cos(5*x + 5*phi)
+
+    y_a, z_a = rotate_x(y_a, z_a, tick/17.0)
+
+    # Color gradient
+    s_c = np.linspace(0, 1, res)
+
+    yo = mlab.plot3d(x, y_a, z_a, s_c,
+                     colormap='Blues',
+                     tube_radius=0.04)
+    colorpath = 'colormaps/seashore.cmap'
+    colors = uc.read_colormap(colorpath, True)
+    # opacity manipulation example
+    lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
+    # shape = (256, 4) with last row of opacities
+    lut[:, -1] = 120
+    yo.module_manager.scalar_lut_manager.lut.table = colors
+
+    # Two ...
     where_b = 10 - 4 * np.cos(5*phi)
     theta_b = soliton(t, where_b)
 
@@ -105,17 +158,12 @@ def make_single(args):
     z_pink = 1.3*np.sin(theta_d) + 0.04 * np.cos(2*x - 4*phi)
     y_pink, z_pink = rotate_x(y_pink, z_pink, 6*np.pi/5 + tick/20.0)
 
-    s_a = np.gradient(theta_a)
-    s_b = np.gradient(theta_b)
-    s_c = np.gradient(theta_c)
-    s_d = np.gradient(theta_d)
+    s_a = np.linspace(0, 1, res)
+    s_b = np.linspace(0, 1, res)
+    s_d = np.linspace(0, 1, res)
 
-    # One
-    mlab.plot3d(x, y_green, z_green, s_c,
-                colormap='Blues',
-                tube_radius=0.04)
     # Two
-    mlab.plot3d(x, y_red, z_red, s_a,
+    mlab.plot3d(x, y_a, z_a-1, s_a,
                 colormap='Blues',
                 tube_radius=0.034)
     # Three

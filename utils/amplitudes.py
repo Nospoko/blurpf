@@ -180,6 +180,15 @@ def grow_up(note):
 
     return y
 
+def fade_down(note):
+    """ Gradually (linearerly) fade out on the lenght of note given """
+    sta, end = get_note_framespan(note)
+    lon = end - sta
+
+    x = np.linspace(1, 0, lon)
+
+    return x
+
 def funfunfun(note):
     """ Change note into a 1d ADSR kind of function """
     sta, end = get_note_framespan(note)
