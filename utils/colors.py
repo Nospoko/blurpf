@@ -1,6 +1,6 @@
 import numpy as np
 
-def read_colormap(path, opaque):
+def read_colormap(path, opaque = False):
     """ Read it """
     cmap = []
     with open(path) as fin:
