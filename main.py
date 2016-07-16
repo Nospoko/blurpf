@@ -8,27 +8,13 @@ from utils import amplitudes as ua
 # Work off-screen
 # mlab.options.offscreen = True
 
-def scores2args(scores):
-    """ Change notes into animation defining arguments """
-    # Unpack
-    fingers = scores['fingers']
-    # FIXME make sure all the fingers notes end at the same tick!
-    # First finger, last note, start + length
+def fingers2amps(fingers):
+    """ Another esoteric transformator """
+    amps = []
+    # FIXME pls how not to load this everywhere
     last = fingers[0][-1][1] + fingers[0][-1][2]
     full_len = ua.tick2frame(last)
 
-    # Create position parametrization
-    positions = []
-    for notes in fingers:
-        # Prepare container for per-frame parameters
-        pos = np.zeros(full_len)
-        for note in notes:
-            sta, end = ua.get_note_framespan(note)
-            pos[sta : end] = note[0]
-
-        positions.append(pos)
-
-    amps = []
     for notes in fingers:
         amp = np.zeros(full_len)
         for note in notes:
@@ -36,16 +22,72 @@ def scores2args(scores):
             amp[sta : end] = ua.fade_down(note)
         amps.append(amp)
 
+    return amps
+
+def fingers2poss(fingers):
+    """ More """
+    positions = []
+    # FIXME pls how not to load this everywhere
+    last = fingers[0][-1][1] + fingers[0][-1][2]
+    full_len = ua.tick2frame(last)
+
+    for notes in fingers:
+        # Prepare container for per-frame parameters
+        pos = np.zeros(full_len)
+        for note in notes:
+            # TODO any kind of transition can be put in here ...
+            sta, end = ua.get_note_framespan(note)
+            dance = note[0] + 4*ua.fade_down(note)
+            pos[sta : end] = dance
+
+        positions.append(pos)
+
+    return positions
+
+def chords2champs(chords):
+    """ Chord amps """
+    # FIXME pls how not to load this everywhere
+    last = chords[-1][1] + chords[-1][2]
+    full_len = ua.tick2frame(last)
+
+    chord_amps = np.zeros(full_len)
+    for note in chords:
+        sta, end = ua.get_note_framespan(note)
+        fade = ua.fade_down(note)
+        if len(fade) > 16:
+            fade = fade**8
+        chord_amps[sta : end] = fade
+
+    return chord_amps
+
+def scores2args(scores):
+    """ Change notes into animation defining arguments """
+    # Unpack
+    chords = scores['chord']
+    fingers = scores['fingers']
+    # FIXME make sure all the fingers notes end at the same tick!
+    # First finger, last note, start + length
+    last = fingers[0][-1][1] + fingers[0][-1][2]
+    full_len = ua.tick2frame(last)
+
+    positions = fingers2poss(fingers)
+    amps = fingers2amps(fingers)
+    champs = chords2champs(chords)
+
+    # Prepare dict to share
     out = []
+    # Time tick loop
     for it in range(full_len):
         famps = []
         fposs = []
+        # Finger loop
         for jt in range(len(fingers)):
             famps.append(amps[jt][it])
             fposs.append(positions[jt][it])
 
         c_dict = {'finger_amps' : famps,
                   'finger_poss' : fposs,
+                  'chord_amp'   : champs[it],
                   'tick'        : it}
 
         out.append(c_dict)
@@ -59,9 +101,8 @@ def rotate_x(y, z, theta):
 
     return y_out, z_out
 
-def soliton(x, where):
+def soliton(x, where, sigma = 0.2):
     """ Sine-Gordon equation solutions """
-    sigma = 0.2
     out = 4 * np.arctan(np.exp(-(x - where)/np.sqrt(1-sigma)))
 
     return out
@@ -107,10 +148,15 @@ def make_single(args):
 
     # De-serialize arguments
     tick = args['tick']
+    champ = args['chord_amp']
     finger_amps = args['finger_amps']
     finger_poss = args['finger_poss']
+
+    # Generalize
+    swing = 0.05 + 0.08* champ
+
     # This is fake phi
-    phi = np.pi * tick / 20.0
+    phi = np.pi * tick / 4.0
 
     # Make clear figure
     mlab.clf()
@@ -122,22 +168,24 @@ def make_single(args):
 
     # Create angular solitons
     # This space need to cover the whole piano span
-    t = np.linspace(0, 80, res)
+    t = np.linspace(30, 80, res)
     # This is the visual span
     x = np.linspace(-5, 5, res)
 
     # One 
     # Position (note pitch)
     where_a = finger_poss[0]
-    theta_a = soliton(t, where_a)
+    sigma_a = 0.4 + 0.3*np.cos(phi/2.0)
+    theta_a = soliton(t, where_a, sigma_a)
 
     # Size (note volume)
     amp_a = 2 * finger_amps[0]
-    y_a = amp_a * (np.cos(theta_a)-0.9) + 0.09 * np.sin(7*x - 3*phi)
-    z_a = amp_a * np.sin(theta_a) + 0.01 * np.cos(5*x + 5*phi)
+
+    y_a = amp_a * (np.cos(theta_a)-1.0) + swing* np.sin(5*x - 0.3*phi)
+    z_a = amp_a * np.sin(theta_a) + swing * np.cos(5*x - 0.3*phi)
 
     # Rotation (note something else?)
-    rot_a = tick / 18.0
+    rot_a = tick / 15.0
     y_a, z_a = rotate_x(y_a, z_a, rot_a)
 
     # Color gradient (hand scale?)
@@ -159,9 +207,12 @@ def make_single(args):
     theta_b = soliton(t, where_b)
 
     amp_b = finger_amps[1]
-    y_blue = amp_b * (np.cos(theta_b)-0.9) + 0.03 * np.cos(6*x + 4*phi)
-    z_blue = np.sin(theta_b) + 0.02 * np.sin(6*x + 4*phi)
-    y_blue, z_blue = rotate_x(y_blue, z_blue, 2*np.pi/5 + tick/13.0)
+    y_blue = amp_b * (np.cos(theta_b)-1.0) +\
+              swing* np.sin(5*x - 0.3*phi - np.pi/3.0)
+
+    z_blue = amp_b * np.sin(theta_b) +\
+              swing* np.cos(5*x - 0.3*phi - np.pi/3.0)
+    y_blue, z_blue = rotate_x(y_blue, z_blue, 2*np.pi/5 + tick/15.0)
 
     s_b = np.gradient(theta_b)
 
@@ -173,8 +224,11 @@ def make_single(args):
     theta_c = soliton(t, where_c)
 
     amp_c = 1.5 * finger_amps[2]
-    y_green = amp_c * (np.cos(theta_c)-0.9) + 0.02 * np.sin(8*x + 3*phi)
-    z_green = amp_c * np.sin(theta_c) + 0.01 * np.cos(2*x - 4*phi)
+    y_green = amp_c * (np.cos(theta_c)-1.0) +\
+              swing* np.sin(5*x - 0.3*phi - 2*np.pi/3.0)
+
+    z_green = amp_c * np.sin(theta_c) +\
+              swing* np.cos(5*x - 0.3*phi - 2*np.pi/3.0)
     y_green, z_green = rotate_x(y_green, z_green, 4*np.pi/5 + tick/15.0)
 
     s_c = np.gradient(theta_c)
@@ -199,7 +253,7 @@ def main():
         scores = pickle.load(fin)
 
     # Generate movie factors
-    args = scores2args(scores)[:200]
+    args = scores2args(scores)[:]
 
     # Not parallel
     # FIXME how to make full-hd
