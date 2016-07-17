@@ -55,7 +55,7 @@ def chords2champs(chords):
         sta, end = ua.get_note_framespan(note)
         fade = ua.fade_down(note)
         if len(fade) > 16:
-            fade = fade**8
+            fade = fade**4
         chord_amps[sta : end] = fade
 
     return chord_amps
@@ -107,6 +107,13 @@ def soliton(x, where, sigma = 0.2):
 
     return out
 
+def make_soliton(x, theta, amp):
+    """ Draw soliton, 'multiple-pendulum' style """
+    y_out = amp * (np.cos(theta) - 1.0)
+    z_out = amp * np.sin(theta)
+
+    return y_out, z_out
+
 def make_box():
     """ Needed as axes range setter, due to tha lack of such """
     # Define helpers
@@ -153,7 +160,7 @@ def make_single(args):
     finger_poss = args['finger_poss']
 
     # Generalize
-    swing = 0.05 + 0.08* champ
+    swing = 0.07 + 0.06* champ
 
     # This is fake phi
     phi = np.pi * tick / 4.0
@@ -175,14 +182,18 @@ def make_single(args):
     # One 
     # Position (note pitch)
     where_a = finger_poss[0]
-    sigma_a = 0.4 + 0.3*np.cos(phi/2.0)
+    sigma_a = 0.4 - 0.35*champ
     theta_a = soliton(t, where_a, sigma_a)
 
     # Size (note volume)
     amp_a = 2 * finger_amps[0]
 
-    y_a = amp_a * (np.cos(theta_a)-1.0) + swing* np.sin(5*x - 0.3*phi)
-    z_a = amp_a * np.sin(theta_a) + swing * np.cos(5*x - 0.3*phi)
+    # Prepare stringy
+    y_a, z_a = make_soliton(x, theta_a, amp_a)
+
+    # Add middle swing
+    y_a += swing * np.sin(5*x - 0.3*phi)
+    z_a += swing * np.cos(5*x - 0.3*phi)
 
     # Rotation (note something else?)
     rot_a = tick / 15.0
@@ -201,6 +212,7 @@ def make_single(args):
     # shape = (256, 4) with last row of opacities
     lut[:, -1] = 120
     yo.module_manager.scalar_lut_manager.lut.table = colors
+
 
     # Two ...
     where_b = finger_poss[1]
