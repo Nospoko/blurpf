@@ -1,3 +1,4 @@
+import cv2
 import pickle
 import numpy as np
 from mayavi import mlab
@@ -126,22 +127,66 @@ def make_box():
     # Define helpers
     res = 20
     width = 5
+    height = 1.9
     eye = np.ones(res)
 
     # Draw the 3d box to solve scaling problems
-    box_span = np.linspace(-width, width, res)
+    width_span = np.linspace(-width, width, res)
+    height_span = np.linspace(-height, height, res)
 
     # TODO Make them black! genius
     r_tube = 1e-8
     # X-dir
-    mlab.plot3d(box_span, 0 * eye, - width * eye, tube_radius=r_tube)
-    mlab.plot3d(box_span, 0 * eye, + width * eye, tube_radius=r_tube)
+    mlab.plot3d(width_span, 0 * eye, - width * eye, tube_radius=r_tube)
+    mlab.plot3d(width_span, 0 * eye, + width * eye, tube_radius=r_tube)
     # Y-dir
-    mlab.plot3d(- width * eye, box_span, 0 * eye, tube_radius=r_tube)
-    mlab.plot3d(+ width * eye, box_span, 0 * eye, tube_radius=r_tube)
+    mlab.plot3d(- height * eye, height_span, 0 * eye, tube_radius=r_tube)
+    mlab.plot3d(+ height * eye, height_span, 0 * eye, tube_radius=r_tube)
     # Z-dir
-    mlab.plot3d(- width * eye, 0 * eye, box_span, tube_radius=r_tube)
-    mlab.plot3d(+ width * eye, 0 * eye, box_span, tube_radius=r_tube)
+    mlab.plot3d(- height * eye, 0 * eye, height_span, tube_radius=r_tube)
+    mlab.plot3d(+ height * eye, 0 * eye, height_span, tube_radius=r_tube)
+
+def make_real_frame(filepath):
+    """ Changes raw plots into final movie frame """
+    # Create final HD image container
+    out = np.zeros((1080, 1920, 3))
+
+    # Load plots
+    img = cv2.imread(filepath)
+
+    # Cut what is interesting
+    solitons = img[300:480, 370:800, :]
+
+    # Add to frame
+    out[900 : 1080, 830 : 1260, :] = solitons
+
+    # FIXME This will not work
+    # External video editor will be needed :(
+    # Add some text
+    font = cv2.FONT_HERSHEY_TRIPLEX
+    font_size = 6.0
+    font_thickness = 18
+    font_color = (255, 255, 255)
+    readme = 'AI trying to learn'
+    cv2.putText(out,
+                readme,
+                (0, 160),
+                font,
+                font_size,
+                font_color,
+                font_thickness)
+    readme = 'progressive metal'
+    cv2.putText(out,
+                readme,
+                (0, 420),
+                font,
+                font_size,
+                font_color,
+                font_thickness)
+
+    cv2.imwrite('dupa.png', out)
+
+    return img
 
 def set_camera_position(args):
     """ Filming angles, pro-shot illusions """
@@ -154,7 +199,7 @@ def set_camera_position(args):
     azimuth = 69 + 3 * tick % 360
     # Zenith angle [0-180]
     elevation = 90
-    mlab.view(azimuth, elevation, 16.0)
+    mlab.view(azimuth, elevation, 3.0)
 
 def make_single(args):
     """ Mayavi tryouts """
@@ -221,6 +266,7 @@ def make_single(args):
         colors[:, -1] = np.linspace(180, 100, 256)
 
         yo = mlab.plot3d(x, y, z, color,
+                         # extent = (-14, -6, -4, 4, 0, 5),
                          vmax = 0.10,
                          vmin = -0.2266,
                          tube_radius=0.04)
