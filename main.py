@@ -6,7 +6,7 @@ from utils import colors as uc
 from utils import amplitudes as ua
 
 # Work off-screen
-# mlab.options.offscreen = True
+mlab.options.offscreen = True
 
 def fingers2amps(fingers):
     """ Another esoteric transformator """
@@ -19,7 +19,7 @@ def fingers2amps(fingers):
         amp = np.zeros(full_len)
         for note in notes:
             sta, end = ua.get_note_framespan(note)
-            amp[sta : end] = ua.fade_down(note)
+            amp[sta : end] = ua.fade_down(note) * note[3]/100.0
         amps.append(amp)
 
     return amps
@@ -37,7 +37,7 @@ def fingers2poss(fingers):
         for note in notes:
             # TODO any kind of transition can be put in here ...
             sta, end = ua.get_note_framespan(note)
-            dance = note[0] + 4*ua.fade_down(note)
+            dance = note[0] + 8*ua.fade_down(note)
             pos[sta : end] = dance
 
         positions.append(pos)
@@ -63,6 +63,7 @@ def chords2champs(chords):
 def scores2args(scores):
     """ Change notes into animation defining arguments """
     # Unpack
+    scales = scores['scale']
     chords = scores['chord']
     fingers = scores['fingers']
     # FIXME make sure all the fingers notes end at the same tick!
@@ -70,9 +71,11 @@ def scores2args(scores):
     last = fingers[0][-1][1] + fingers[0][-1][2]
     full_len = ua.tick2frame(last)
 
-    positions = fingers2poss(fingers)
     amps = fingers2amps(fingers)
     champs = chords2champs(chords)
+    positions = fingers2poss(fingers)
+    color_a, color_b = ua.scales2colors(scales)
+    proportions = ua.scales2color_proportions(scales)
 
     # Prepare dict to share
     out = []
@@ -88,6 +91,9 @@ def scores2args(scores):
         c_dict = {'finger_amps' : famps,
                   'finger_poss' : fposs,
                   'chord_amp'   : champs[it],
+                  'color_a'     : color_a[it],
+                  'color_b'     : color_b[it],
+                  'c_prop'      : proportions[it],
                   'tick'        : it}
 
         out.append(c_dict)
@@ -107,8 +113,9 @@ def soliton(x, where, sigma = 0.2):
 
     return out
 
-def make_soliton(x, theta, amp):
+def make_soliton(theta, amp):
     """ Draw soliton, 'multiple-pendulum' style """
+    # This makes them rotate arount the x-axis
     y_out = amp * (np.cos(theta) - 1.0)
     z_out = amp * np.sin(theta)
 
@@ -158,6 +165,10 @@ def make_single(args):
     champ = args['chord_amp']
     finger_amps = args['finger_amps']
     finger_poss = args['finger_poss']
+    # Color setup
+    proportion  = args['c_prop']
+    color_a     = args['color_a']
+    color_b     = args['color_b']
 
     # Generalize
     swing = 0.04 + 0.07* champ
@@ -184,17 +195,17 @@ def make_single(args):
         # Unpack
         amp, pos = finger_amps[it], finger_poss[it]
         # Constant between fingers
-        sigma = 0.4 - 0.35*champ
+        sigma = 0.8 - 0.75*champ
 
         # Position (note pitch)
         theta = soliton(t, pos, sigma)
 
         # Prepare stringy
-        y, z = make_soliton(x, theta, amp)
+        y, z = make_soliton(theta, amp)
 
         # Add swing in the middle
-        y += swing * np.sin(5*x - 0.3*phi + it * 0*np.pi/5.0)
-        z += swing * np.cos(5*x - 0.3*phi + it * 0*np.pi/5.0)
+        y += swing * np.sin(5*x - 0.3*phi)
+        z += swing * np.cos(5*x - 0.3*phi)
 
         # Rotation (note something else?)
         rot = tick/15.0 + it * 2*np.pi/5.0
@@ -202,19 +213,25 @@ def make_single(args):
 
         # Color gradient (hand scale?)
         color = np.gradient(theta)
-        colorpath = 'colormaps/greens.cmap'
-        colors = uc.read_colormap(colorpath, True)
 
-        # Change gradient into opacity
-        colors[:, -1] = np.linspace(200, 100, 256)
+        # Look-up table
+        colors = uc.mixed_colormap(color_a, color_b, proportion)
+
+        # Add opacity
+        colors[:, -1] = np.linspace(180, 100, 256)
 
         yo = mlab.plot3d(x, y, z, color,
-                         colormap='Blues',
+                         vmax = 0.10,
+                         vmin = -0.2266,
                          tube_radius=0.04)
+
         # opacity manipulation example
         # lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
         # shape = (256, 4) with last row of opacities
         yo.module_manager.scalar_lut_manager.lut.table = colors
+
+    # Check for vmax/vmin tuning
+    # print max(color), min(color)
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
     mlab.savefig(savepath)
@@ -224,7 +241,7 @@ def main():
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Point the blompf data
-    prefix = 'xk'
+    prefix = 'zl'
     blompf_path = prefix + '_blompf_data.pickle'
 
     # Get notes
@@ -236,7 +253,7 @@ def main():
 
     # Not parallel
     # FIXME how to make full-hd
-    mlab.figure(fgcolor=(1, 1, 1), bgcolor=(0, 0, 0), size=(700, 700))
+    mlab.figure(fgcolor=(1, 1, 1), bgcolor=(0, 0, 0), size=(1200, 800))
 
     for arg in args:
         print arg['tick']
