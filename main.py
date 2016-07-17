@@ -160,7 +160,7 @@ def make_single(args):
     finger_poss = args['finger_poss']
 
     # Generalize
-    swing = 0.07 + 0.06* champ
+    swing = 0.04 + 0.07* champ
 
     # This is fake phi
     phi = np.pi * tick / 4.0
@@ -175,79 +175,46 @@ def make_single(args):
 
     # Create angular solitons
     # This space need to cover the whole piano span
-    t = np.linspace(30, 80, res)
+    t = np.linspace(20, 90, res)
     # This is the visual span
     x = np.linspace(-5, 5, res)
 
     # One 
-    # Position (note pitch)
-    where_a = finger_poss[0]
-    sigma_a = 0.4 - 0.35*champ
-    theta_a = soliton(t, where_a, sigma_a)
+    for it in range(len(finger_amps)):
+        # Unpack
+        amp, pos = finger_amps[it], finger_poss[it]
+        # Constant between fingers
+        sigma = 0.4 - 0.35*champ
 
-    # Size (note volume)
-    amp_a = 2 * finger_amps[0]
+        # Position (note pitch)
+        theta = soliton(t, pos, sigma)
 
-    # Prepare stringy
-    y_a, z_a = make_soliton(x, theta_a, amp_a)
+        # Prepare stringy
+        y, z = make_soliton(x, theta, amp)
 
-    # Add middle swing
-    y_a += swing * np.sin(5*x - 0.3*phi)
-    z_a += swing * np.cos(5*x - 0.3*phi)
+        # Add swing in the middle
+        y += swing * np.sin(5*x - 0.3*phi + it * 0*np.pi/5.0)
+        z += swing * np.cos(5*x - 0.3*phi + it * 0*np.pi/5.0)
 
-    # Rotation (note something else?)
-    rot_a = tick / 15.0
-    y_a, z_a = rotate_x(y_a, z_a, rot_a)
+        # Rotation (note something else?)
+        rot = tick/15.0 + it * 2*np.pi/5.0
+        y, z = rotate_x(y, z, rot)
 
-    # Color gradient (hand scale?)
-    color_a = np.gradient(theta_a)
-    colorpath = 'colormaps/seashore.cmap'
-    colors = uc.read_colormap(colorpath, True)
+        # Color gradient (hand scale?)
+        color = np.gradient(theta)
+        colorpath = 'colormaps/greens.cmap'
+        colors = uc.read_colormap(colorpath, True)
 
-    yo = mlab.plot3d(x, y_a, z_a, color_a,
-                     colormap='Blues',
-                     tube_radius=0.04)
-    # opacity manipulation example
-    lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
-    # shape = (256, 4) with last row of opacities
-    lut[:, -1] = 120
-    yo.module_manager.scalar_lut_manager.lut.table = colors
+        # Change gradient into opacity
+        colors[:, -1] = np.linspace(200, 100, 256)
 
-
-    # Two ...
-    where_b = finger_poss[1]
-    theta_b = soliton(t, where_b)
-
-    amp_b = finger_amps[1]
-    y_blue = amp_b * (np.cos(theta_b)-1.0) +\
-              swing* np.sin(5*x - 0.3*phi - np.pi/3.0)
-
-    z_blue = amp_b * np.sin(theta_b) +\
-              swing* np.cos(5*x - 0.3*phi - np.pi/3.0)
-    y_blue, z_blue = rotate_x(y_blue, z_blue, 2*np.pi/5 + tick/15.0)
-
-    s_b = np.gradient(theta_b)
-
-    mlab.plot3d(x, y_blue, z_blue, s_b,
-                colormap='Blues',
-                tube_radius=0.039)
-
-    where_c = finger_poss[2]
-    theta_c = soliton(t, where_c)
-
-    amp_c = 1.5 * finger_amps[2]
-    y_green = amp_c * (np.cos(theta_c)-1.0) +\
-              swing* np.sin(5*x - 0.3*phi - 2*np.pi/3.0)
-
-    z_green = amp_c * np.sin(theta_c) +\
-              swing* np.cos(5*x - 0.3*phi - 2*np.pi/3.0)
-    y_green, z_green = rotate_x(y_green, z_green, 4*np.pi/5 + tick/15.0)
-
-    s_c = np.gradient(theta_c)
-
-    mlab.plot3d(x, y_green, z_green, s_c,
-                colormap='Blues',
-                tube_radius=0.035)
+        yo = mlab.plot3d(x, y, z, color,
+                         colormap='Blues',
+                         tube_radius=0.04)
+        # opacity manipulation example
+        # lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
+        # shape = (256, 4) with last row of opacities
+        yo.module_manager.scalar_lut_manager.lut.table = colors
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
     mlab.savefig(savepath)
