@@ -127,7 +127,7 @@ def make_box():
     # Define helpers
     res = 20
     width = 5
-    height = 2.9
+    height = 2.1
     eye = np.ones(res)
 
     # Draw the 3d box to solve scaling problems
@@ -135,16 +135,16 @@ def make_box():
     height_span = np.linspace(-height, height, res)
 
     # TODO Make them black! genius
-    r_tube = 1e-8
+    r_tube = 1e-2
     # X-dir
     mlab.plot3d(width_span, 0 * eye, - height * eye, tube_radius=r_tube)
     mlab.plot3d(width_span, 0 * eye, + height * eye, tube_radius=r_tube)
     # Y-dir
-    mlab.plot3d(- height * eye, height_span, 0 * eye, tube_radius=r_tube)
-    mlab.plot3d(+ height * eye, height_span, 0 * eye, tube_radius=r_tube)
+    mlab.plot3d(- width * eye, height_span, 0 * eye, tube_radius=r_tube)
+    mlab.plot3d(+ width * eye, height_span, 0 * eye, tube_radius=r_tube)
     # Z-dir
-    mlab.plot3d(- height * eye, 0 * eye, height_span, tube_radius=r_tube)
-    mlab.plot3d(+ height * eye, 0 * eye, height_span, tube_radius=r_tube)
+    mlab.plot3d(- width * eye, 0 * eye, height_span, tube_radius=r_tube)
+    mlab.plot3d(+ width * eye, 0 * eye, height_span, tube_radius=r_tube)
 
 def make_real_frame(filepath):
     """ Changes raw plots into final movie frame """
@@ -266,7 +266,7 @@ def make_single(args):
         colors[:, -1] = np.linspace(180, 100, 256)
 
         yo = mlab.plot3d(x, y, z, color,
-                         # extent = (0, 1, 0, 1, 0, 1),
+                         # extent = (0, 10, 0, 4, 0, 4),
                          # colormap = 'Blues',
                          vmax = 0.10,
                          vmin = -0.2266,
@@ -281,7 +281,7 @@ def make_single(args):
     # print max(color), min(color)
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
-    mlab.savefig(savepath)
+    mlab.savefig(savepath, (640, 480))
 
 def main():
     """ blurpf """
@@ -301,8 +301,7 @@ def main():
     # Not parallel
     # FIXME how to make full-hd
     fig = mlab.figure(fgcolor = (1, 1, 1),
-                      bgcolor = (0.1, 0, 0),
-                      size = (3000, 3000))
+                      bgcolor = (0, 0.01, 0))
 
     for arg in args:
         print arg['tick']
