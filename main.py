@@ -127,7 +127,7 @@ def make_box():
     # Define helpers
     res = 20
     width = 5
-    height = 1.9
+    height = 2.9
     eye = np.ones(res)
 
     # Draw the 3d box to solve scaling problems
@@ -137,8 +137,8 @@ def make_box():
     # TODO Make them black! genius
     r_tube = 1e-8
     # X-dir
-    mlab.plot3d(width_span, 0 * eye, - width * eye, tube_radius=r_tube)
-    mlab.plot3d(width_span, 0 * eye, + width * eye, tube_radius=r_tube)
+    mlab.plot3d(width_span, 0 * eye, - height * eye, tube_radius=r_tube)
+    mlab.plot3d(width_span, 0 * eye, + height * eye, tube_radius=r_tube)
     # Y-dir
     mlab.plot3d(- height * eye, height_span, 0 * eye, tube_radius=r_tube)
     mlab.plot3d(+ height * eye, height_span, 0 * eye, tube_radius=r_tube)
@@ -266,7 +266,8 @@ def make_single(args):
         colors[:, -1] = np.linspace(180, 100, 256)
 
         yo = mlab.plot3d(x, y, z, color,
-                         # extent = (-14, -6, -4, 4, 0, 5),
+                         # extent = (0, 1, 0, 1, 0, 1),
+                         # colormap = 'Blues',
                          vmax = 0.10,
                          vmin = -0.2266,
                          tube_radius=0.04)
@@ -299,7 +300,9 @@ def main():
 
     # Not parallel
     # FIXME how to make full-hd
-    mlab.figure(fgcolor=(1, 1, 1), bgcolor=(0, 0, 0), size=(1200, 800))
+    fig = mlab.figure(fgcolor = (1, 1, 1),
+                      bgcolor = (0.1, 0, 0),
+                      size = (3000, 3000))
 
     for arg in args:
         print arg['tick']
