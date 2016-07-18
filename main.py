@@ -20,7 +20,7 @@ def fingers2amps(fingers):
         amp = np.zeros(full_len)
         for note in notes:
             sta, end = ua.get_note_framespan(note)
-            amp[sta : end] = ua.fade_down(note) * note[3]/100.0
+            amp[sta : end] = ua.fade_down(note) * note[3]/130.0
         amps.append(amp)
 
     return amps
@@ -55,7 +55,7 @@ def chords2champs(chords):
     for note in chords:
         sta, end = ua.get_note_framespan(note)
         fade = ua.fade_down(note)
-        if len(fade) > 16:
+        if len(fade) > 32:
             fade = fade**4
         chord_amps[sta : end] = fade
 
@@ -192,13 +192,17 @@ def set_camera_position(args):
     """ Filming angles, pro-shot illusions """
     # Extract values
     tick = args['tick']
-    tick = 119
+
+    # Camera movements improve the 3d feelings
+    phi = np.pi * tick / 100.0
+    hori = 15 * np.sin(phi)
+    verti = 4 * np.sin(phi/1.4)
 
     # Camera settings
     # Horizontal angle [0 : 360]
-    azimuth = 69 + 3 * tick % 360
+    azimuth = 66 + hori
     # Zenith angle [0-180]
-    elevation = 90
+    elevation = 90 + verti
     mlab.view(azimuth, elevation, 3.0)
 
 def make_single(args):
@@ -249,8 +253,8 @@ def make_single(args):
         y, z = make_soliton(theta, amp)
 
         # Add swing in the middle
-        y += swing * np.sin(5*x - 0.3*phi)
-        z += swing * np.cos(5*x - 0.3*phi)
+        y += swing * np.sin(5*x - 0.2*phi) * np.cos(x - 0.1*phi)
+        z += swing * np.cos(5*x - 0.1*phi) * np.cos(x - 0.1*phi)
 
         # Rotation (note something else?)
         rot = tick/15.0 + it * 2*np.pi/5.0
@@ -281,7 +285,7 @@ def make_single(args):
     # print max(color), min(color)
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
-    mlab.savefig(savepath, (640, 480))
+    mlab.savefig(savepath, (500, 500))
 
 def main():
     """ blurpf """
@@ -301,7 +305,7 @@ def main():
     # Not parallel
     # FIXME how to make full-hd
     fig = mlab.figure(fgcolor = (1, 1, 1),
-                      bgcolor = (0, 0.01, 0))
+                      bgcolor = (0.03, 0.01, 0.05))
 
     for arg in args:
         print arg['tick']
