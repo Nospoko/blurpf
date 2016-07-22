@@ -135,7 +135,7 @@ def make_box():
     height_span = np.linspace(-height, height, res)
 
     # TODO Make them black! genius
-    r_tube = 1e-2
+    r_tube = 1e-9
     # X-dir
     mlab.plot3d(width_span, 0 * eye, - height * eye, tube_radius=r_tube)
     mlab.plot3d(width_span, 0 * eye, + height * eye, tube_radius=r_tube)
@@ -195,8 +195,8 @@ def set_camera_position(args):
 
     # Camera movements improve the 3d feelings
     phi = np.pi * tick / 100.0
-    hori = 15 * np.sin(phi)
-    verti = 4 * np.sin(phi/1.4)
+    hori = 10 * np.sin(phi)
+    verti = 8 * np.sin(phi/2.4)
 
     # Camera settings
     # Horizontal angle [0 : 360]
@@ -207,7 +207,7 @@ def set_camera_position(args):
 
 def make_single(args):
     """ Mayavi tryouts """
-    res = 600
+    res = 800
 
     # De-serialize arguments
     tick = args['tick']
@@ -220,10 +220,10 @@ def make_single(args):
     color_b     = args['color_b']
 
     # Generalize
-    swing = 0.04 + 0.07* champ
+    swing = 0.06 + 0.09* champ
 
     # This is fake phi
-    phi = np.pi * tick / 4.0
+    phi = np.pi * tick / 6.0
 
     # Make clear figure
     mlab.clf()
@@ -235,7 +235,8 @@ def make_single(args):
 
     # Create angular solitons
     # This space need to cover the whole piano span
-    t = np.linspace(20, 90, res)
+    # TODO Automate range detection
+    t = np.linspace(20, 100, res)
     # This is the visual span
     x = np.linspace(-5, 5, res)
 
@@ -272,11 +273,11 @@ def make_single(args):
         yo = mlab.plot3d(x, y, z, color,
                          # extent = (0, 10, 0, 4, 0, 4),
                          # colormap = 'Blues',
-                         vmax = 0.10,
-                         vmin = -0.2266,
+                         vmax = 0.50,
+                         vmin = -0.4266,
                          tube_radius=0.04)
 
-        # opacity manipulation example
+        # opacity manipulation example (look-up-table)
         # lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
         # shape = (256, 4) with last row of opacities
         yo.module_manager.scalar_lut_manager.lut.table = colors
@@ -285,22 +286,23 @@ def make_single(args):
     # print max(color), min(color)
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
-    mlab.savefig(savepath, (500, 500))
+    mlab.savefig(savepath, (1000, 1000))
 
 def main():
     """ blurpf """
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Point the blompf data
-    prefix = 'zl'
+    prefix = 'yq'
     blompf_path = prefix + '_blompf_data.pickle'
 
     # Get notes
     with open(blompf_path) as fin:
         scores = pickle.load(fin)
 
+    sector = 0
     # Generate movie factors
-    args = scores2args(scores)[:]
+    args = scores2args(scores)[sector * 2000 : (sector+1) * 2000]
 
     # Not parallel
     # FIXME how to make full-hd
