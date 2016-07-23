@@ -128,11 +128,13 @@ def make_box():
     res = 20
     width = 5
     height = 2.1
+    depth = 3 * height
     eye = np.ones(res)
 
     # Draw the 3d box to solve scaling problems
     width_span = np.linspace(-width, width, res)
     height_span = np.linspace(-height, height, res)
+    depth_span = np.linspace(-depth, depth, res)
 
     # TODO Make them black! genius
     r_tube = 1e-9
@@ -140,8 +142,8 @@ def make_box():
     mlab.plot3d(width_span, 0 * eye, - height * eye, tube_radius=r_tube)
     mlab.plot3d(width_span, 0 * eye, + height * eye, tube_radius=r_tube)
     # Y-dir
-    mlab.plot3d(- width * eye, height_span, 0 * eye, tube_radius=r_tube)
-    mlab.plot3d(+ width * eye, height_span, 0 * eye, tube_radius=r_tube)
+    mlab.plot3d(- width * eye, depth_span, 0 * eye, tube_radius=r_tube)
+    mlab.plot3d(+ width * eye, depth_span, 0 * eye, tube_radius=r_tube)
     # Z-dir
     mlab.plot3d(- width * eye, 0 * eye, height_span, tube_radius=r_tube)
     mlab.plot3d(+ width * eye, 0 * eye, height_span, tube_radius=r_tube)
@@ -195,14 +197,14 @@ def set_camera_position(args):
 
     # Camera movements improve the 3d feelings
     phi = np.pi * tick / 100.0
-    hori = 10 * np.sin(phi)
-    verti = 8 * np.sin(phi/2.4)
+    hori = 10 * np.sin(phi/6.66)
+    verti = 38 * np.sin(phi/12.4)
 
     # Camera settings
     # Horizontal angle [0 : 360]
     azimuth = 66 + hori
     # Zenith angle [0-180]
-    elevation = 90 + verti
+    elevation = 40 + verti
     mlab.view(azimuth, elevation, 3.0)
 
 def make_single(args):
@@ -240,60 +242,63 @@ def make_single(args):
     # This is the visual span
     x = np.linspace(-5, 5, res)
 
-    # One 
-    for it in range(len(finger_amps)):
-        # Unpack
-        amp, pos = finger_amps[it], finger_poss[it]
-        # Constant between fingers
-        sigma = 0.8 - 0.75*champ
+    for shift in [-1, 0, 1]:
+        # One 
+        for it in range(len(finger_amps)):
+            # Unpack
+            amp, pos = finger_amps[it], finger_poss[it]
+            # Constant between fingers
+            sigma = 0.8 - 0.75*champ
 
-        # Position (note pitch)
-        theta = soliton(t, pos, sigma)
+            # Position (note pitch)
+            theta = soliton(t, pos, sigma)
 
-        # Prepare stringy
-        y, z = make_soliton(theta, amp)
+            # Prepare stringy
+            y, z = make_soliton(theta, amp)
 
-        # Add swing in the middle
-        y += swing * np.sin(5*x - 0.2*phi) * np.cos(x - 0.1*phi)
-        z += swing * np.cos(5*x - 0.1*phi) * np.cos(x - 0.1*phi)
+            # Add swing in the middle
+            y += swing * np.sin(5*x - 0.2*phi) * np.cos(x - 0.1*phi)
+            z += swing * np.cos(5*x - 0.1*phi) * np.cos(x - 0.1*phi)
 
-        # Rotation (note something else?)
-        rot = tick/15.0 + it * 2*np.pi/5.0
-        y, z = rotate_x(y, z, rot)
+            # Rotation (note something else?)
+            rot = tick/15.0 + it * 2*np.pi/5.0
+            y, z = rotate_x(y, z, rot)
 
-        # Color gradient (hand scale?)
-        color = np.gradient(theta)
+            y += shift * 2.2
 
-        # Look-up table
-        colors = uc.mixed_colormap(color_a, color_b, proportion)
+            # Color gradient (hand scale?)
+            color = np.gradient(theta)
 
-        # Add opacity
-        colors[:, -1] = np.linspace(180, 100, 256)
+            # Look-up table
+            colors = uc.mixed_colormap(color_a, color_b, proportion)
 
-        yo = mlab.plot3d(x, y, z, color,
-                         # extent = (0, 10, 0, 4, 0, 4),
-                         # colormap = 'Blues',
-                         vmax = 0.50,
-                         vmin = -0.4266,
-                         tube_radius=0.04)
+            # Add opacity
+            colors[:, -1] = np.linspace(180, 100, 256)
 
-        # opacity manipulation example (look-up-table)
-        # lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
-        # shape = (256, 4) with last row of opacities
-        yo.module_manager.scalar_lut_manager.lut.table = colors
+            yo = mlab.plot3d(x, y, z, color,
+                             # extent = (0, 10, 0, 4, 0, 4),
+                             # colormap = 'Blues',
+                             vmax = 0.50,
+                             vmin = -0.4266,
+                             tube_radius=0.04)
+
+            # opacity manipulation example (look-up-table)
+            # lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
+            # shape = (256, 4) with last row of opacities
+            yo.module_manager.scalar_lut_manager.lut.table = colors
 
     # Check for vmax/vmin tuning
     # print max(color), min(color)
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
-    mlab.savefig(savepath, (1000, 1000))
+    mlab.savefig(savepath, (500, 500))
 
 def main():
     """ blurpf """
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Point the blompf data
-    prefix = 'yq'
+    prefix = 'xc'
     blompf_path = prefix + '_blompf_data.pickle'
 
     # Get notes
@@ -307,7 +312,7 @@ def main():
     # Not parallel
     # FIXME how to make full-hd
     fig = mlab.figure(fgcolor = (1, 1, 1),
-                      bgcolor = (0.03, 0.01, 0.05))
+                      bgcolor = (0.0, 0.0, 0.0))
 
     for arg in args:
         print arg['tick']
