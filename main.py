@@ -305,7 +305,7 @@ def make_single(args):
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
     mlab.savefig(savepath, (1000, 1000))
 
-def main(secotor):
+def main(sector):
     """ blurpf """
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
