@@ -1,6 +1,9 @@
+import os
 import cv2
+import sys
 import pickle
 import numpy as np
+from glob import glob
 from mayavi import mlab
 import multiprocessing as mp
 from utils import colors as uc
@@ -8,6 +11,18 @@ from utils import amplitudes as ua
 
 # Work off-screen
 mlab.options.offscreen = True
+
+def crop_images():
+    """ Utility for movie creation """
+    paths = glob('imgs/*.png')
+    for path in paths:
+        img = cv2.imread(path)
+        # Negotiate with resolution
+        frame = img[250 : 650, 50 : 850, :]
+        savepath = 'imgs/cropped/' + os.path.split(path)[1]
+        cv2.imwrite(savepath, frame)
+        # Show progress
+        print savepath
 
 def fingers2amps(fingers):
     """ Another esoteric transformator """
@@ -128,7 +143,7 @@ def make_box():
     res = 20
     width = 5
     height = 2.1
-    depth = 3 * height
+    depth = 1 * height
     eye = np.ones(res)
 
     # Draw the 3d box to solve scaling problems
@@ -198,7 +213,7 @@ def set_camera_position(args):
     # Camera movements improve the 3d feelings
     phi = np.pi * tick / 100.0
     hori = 10 * np.sin(phi/6.66)
-    verti = 38 * np.sin(phi/12.4)
+    verti = 40 + 18 * np.sin(phi/12.4)
 
     # Camera settings
     # Horizontal angle [0 : 360]
@@ -222,7 +237,7 @@ def make_single(args):
     color_b     = args['color_b']
 
     # Generalize
-    swing = 0.06 + 0.09* champ
+    swing = 0.06 + 0.12* champ
 
     # This is fake phi
     phi = np.pi * tick / 6.0
@@ -238,76 +253,73 @@ def make_single(args):
     # Create angular solitons
     # This space need to cover the whole piano span
     # TODO Automate range detection
-    t = np.linspace(20, 100, res)
+    t = np.linspace(20, 90, res)
     # This is the visual span
     x = np.linspace(-5, 5, res)
 
-    for shift in [-1, 0, 1]:
-        # One 
-        for it in range(len(finger_amps)):
-            # Unpack
-            amp, pos = finger_amps[it], finger_poss[it]
-            # Constant between fingers
-            sigma = 0.8 - 0.75*champ
+    # One 
+    for it in range(len(finger_amps)):
+        # Unpack
+        amp, pos = finger_amps[it], finger_poss[it]
+        # Constant between fingers
+        sigma = 0.8 - 0.75*champ
 
-            # Position (note pitch)
-            theta = soliton(t, pos, sigma)
+        # Position (note pitch)
+        theta = soliton(t, pos, sigma)
 
-            # Prepare stringy
-            y, z = make_soliton(theta, amp)
+        # Prepare stringy
+        y, z = make_soliton(theta, amp)
 
-            # Add swing in the middle
-            y += swing * np.sin(5*x - 0.2*phi) * np.cos(x - 0.1*phi)
-            z += swing * np.cos(5*x - 0.1*phi) * np.cos(x - 0.1*phi)
+        # Add swing in the middle
+        y += swing * np.sin(5*x - 0.2*phi) * np.cos(x - 0.1*phi)
+        z += swing * np.cos(5*x - 0.1*phi) * np.cos(x - 0.1*phi)
 
-            # Rotation (note something else?)
-            rot = tick/15.0 + it * 2*np.pi/5.0
-            y, z = rotate_x(y, z, rot)
+        # Rotation (note something else?)
+        rot = tick/15.0 + it * 2*np.pi/5.0
+        y, z = rotate_x(y, z, rot)
 
-            y += shift * 2.2
+        # Color gradient (hand scale?)
+        color = np.gradient(theta)
 
-            # Color gradient (hand scale?)
-            color = np.gradient(theta)
+        # Look-up table
+        colors = uc.mixed_colormap(color_a, color_b, proportion)
 
-            # Look-up table
-            colors = uc.mixed_colormap(color_a, color_b, proportion)
+        # Add opacity
+        colors[:, -1] = np.linspace(180, 100, 256)
 
-            # Add opacity
-            colors[:, -1] = np.linspace(180, 100, 256)
+        yo = mlab.plot3d(x, y, z, color,
+                         # extent = (0, 10, 0, 4, 0, 4),
+                         # colormap = 'Blues',
+                         vmax = 0.50,
+                         vmin = -0.4266,
+                         tube_radius=0.04)
 
-            yo = mlab.plot3d(x, y, z, color,
-                             # extent = (0, 10, 0, 4, 0, 4),
-                             # colormap = 'Blues',
-                             vmax = 0.50,
-                             vmin = -0.4266,
-                             tube_radius=0.04)
-
-            # opacity manipulation example (look-up-table)
-            # lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
-            # shape = (256, 4) with last row of opacities
-            yo.module_manager.scalar_lut_manager.lut.table = colors
+        # opacity manipulation example (look-up-table)
+        # lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
+        # shape = (256, 4) with last row of opacities
+        yo.module_manager.scalar_lut_manager.lut.table = colors
 
     # Check for vmax/vmin tuning
     # print max(color), min(color)
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
-    mlab.savefig(savepath, (500, 500))
+    mlab.savefig(savepath, (1000, 1000))
 
-def main():
+def main(secotor):
     """ blurpf """
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Point the blompf data
-    prefix = 'xc'
+    prefix = 'qn'
     blompf_path = prefix + '_blompf_data.pickle'
 
     # Get notes
     with open(blompf_path) as fin:
         scores = pickle.load(fin)
 
-    sector = 0
+    width = 800
     # Generate movie factors
-    args = scores2args(scores)[sector * 2000 : (sector+1) * 2000]
+    args = scores2args(scores)[sector * width: (sector+1) * width]
 
     # Not parallel
     # FIXME how to make full-hd
@@ -319,4 +331,6 @@ def main():
         make_single(arg)
 
 if __name__ == '__main__':
-    main()
+    sector = int(sys.argv[1])
+    print sector
+    main(sector)
