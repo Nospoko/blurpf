@@ -70,6 +70,7 @@ def chords2champs(chords):
     for note in chords:
         sta, end = ua.get_note_framespan(note)
         fade = ua.fade_down(note)
+        # FIXME pls, maybe some switch statement?
         if len(fade) > 32:
             fade = fade**4
         chord_amps[sta : end] = fade
@@ -123,8 +124,9 @@ def rotate_x(y, z, theta):
 
     return y_out, z_out
 
-def soliton(x, where, sigma = 0.2):
+def soliton(x, where, sigma = 0.5):
     """ Sine-Gordon equation solutions """
+    # This sigma thing does not seem to be doing very much
     out = 4 * np.arctan(np.exp(-(x - where)/np.sqrt(1-sigma)))
 
     return out
@@ -224,13 +226,13 @@ def set_camera_position(args):
 
 def make_single(args):
     """ Mayavi tryouts """
-    res = 800
-
     # De-serialize arguments
     tick = args['tick']
     champ = args['chord_amp']
     finger_amps = args['finger_amps']
     finger_poss = args['finger_poss']
+    howmany     = len(finger_amps)
+
     # Color setup
     proportion  = args['c_prop']
     color_a     = args['color_a']
@@ -239,7 +241,7 @@ def make_single(args):
     # Generalize
     swing = 0.06 + 0.12* champ
 
-    # This is fake phi
+    # Thing angularly about the tick
     phi = np.pi * tick / 6.0
 
     # Make clear figure
@@ -253,19 +255,18 @@ def make_single(args):
     # Create angular solitons
     # This space need to cover the whole piano span
     # TODO Automate range detection
+    res = 800
     t = np.linspace(20, 90, res)
     # This is the visual span
     x = np.linspace(-5, 5, res)
 
     # One 
-    for it in range(len(finger_amps)):
+    for it in range(howmany):
         # Unpack
         amp, pos = finger_amps[it], finger_poss[it]
-        # Constant between fingers
-        sigma = 0.8 - 0.75*champ
 
         # Position (note pitch)
-        theta = soliton(t, pos, sigma)
+        theta = soliton(t, pos)
 
         # Prepare stringy
         y, z = make_soliton(theta, amp)
@@ -275,18 +276,13 @@ def make_single(args):
         z += swing * np.cos(5*x - 0.1*phi) * np.cos(x - 0.1*phi)
 
         # Rotation (note something else?)
-        rot = tick/15.0 + it * 2*np.pi/5.0
+        rot = tick/15.0 + it * 2*np.pi/howmany
         y, z = rotate_x(y, z, rot)
 
         # Color gradient (hand scale?)
         color = np.gradient(theta)
 
-        # Look-up table
-        colors = uc.mixed_colormap(color_a, color_b, proportion)
-
-        # Add opacity
-        colors[:, -1] = np.linspace(180, 100, 256)
-
+        # Draw a line
         yo = mlab.plot3d(x, y, z, color,
                          # extent = (0, 10, 0, 4, 0, 4),
                          # colormap = 'Blues',
@@ -294,23 +290,34 @@ def make_single(args):
                          vmin = -0.4266,
                          tube_radius=0.04)
 
-        # opacity manipulation example (look-up-table)
-        # lut = yo.module_manager.scalar_lut_manager.lut.table.to_array()
-        # shape = (256, 4) with last row of opacities
+        # Make colors scale-dependant
+        colors = uc.mixed_colormap(color_a, color_b, proportion)
+
+        # Add opacity
+        colors[:, -1] = np.linspace(180, 100, 256)
+
+        # Set customized colors
         yo.module_manager.scalar_lut_manager.lut.table = colors
 
     # Check for vmax/vmin tuning
     # print max(color), min(color)
 
     savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
-    mlab.savefig(savepath, (1000, 1000))
+    mlab.savefig(savepath, resolution())
+
+def resolution():
+    """ Clever constant """
+    # Mayavi performs best when generating squares
+    side = 420
+
+    return (side, side)
 
 def main(sector):
     """ blurpf """
     # blompf notes sample PITCH | START | DURATION | VOLUME
 
     # Point the blompf data
-    prefix = 'qn'
+    prefix = 'xc'
     blompf_path = prefix + '_blompf_data.pickle'
 
     # Get notes
@@ -321,16 +328,28 @@ def main(sector):
     # Generate movie factors
     args = scores2args(scores)[sector * width: (sector+1) * width]
 
-    # Not parallel
-    # FIXME how to make full-hd
+    # One figure is enough for one run?
+    # This does not seem like a fine design
     fig = mlab.figure(fgcolor = (1, 1, 1),
                       bgcolor = (0.0, 0.0, 0.0))
+
+    # TODO Make intro
+    # simply construct special arglike dictionary
+    # to perform some introduction with the same code
+    # intro_args = make_intro(args[0])
+    # for arg in intro_args:
+    #     make_single(arg)
 
     for arg in args:
         print arg['tick']
         make_single(arg)
 
 if __name__ == '__main__':
-    sector = int(sys.argv[1])
-    print sector
+    # This is a very not professional paralellization system
+    if len(sys.argv) < 2:
+        sector = 0
+    else:
+        sector = int(sys.argv[1])
+
+    print 'Animating sector:', sector
     main(sector)
