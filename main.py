@@ -12,6 +12,47 @@ from utils import amplitudes as ua
 # Work off-screen
 mlab.options.offscreen = True
 
+def make_intro(args):
+    """ What what """
+    # Directing
+    nof_frames = 100
+
+    # Deserialize data of the final frame
+    tick = args['tick']
+    champ = args['chord_amp']
+    finger_amps = args['finger_amps']
+    finger_poss = args['finger_poss']
+    howmany     = len(finger_amps)
+
+    # Color setup
+    proportion  = args['c_prop']
+    color_a     = args['color_a']
+    color_b     = args['color_b']
+
+    # Fake values for the swing amp factor
+    champs = np.linspace(4, 1, nof_frames)
+
+    out = []
+    for it in range(nof_frames):
+        famps = []
+        fposs = []
+        # Finger loop
+        for jt in range(len(finger_amps)):
+            famps.append(finger_amps[jt]/2)
+            fposs.append(finger_poss[jt])
+
+        c_dict = {'finger_amps' : famps,
+                  'finger_poss' : fposs,
+                  'chord_amp'   : champs[it],
+                  'color_a'     : color_a,
+                  'color_b'     : color_b,
+                  'c_prop'      : proportion,
+                  'tick'        : -it}
+
+        out.append(c_dict)
+
+    return out
+
 def crop_images():
     """ Utility for movie creation """
     paths = glob('imgs/*.png')
@@ -165,48 +206,6 @@ def make_box():
     mlab.plot3d(- width * eye, 0 * eye, height_span, tube_radius=r_tube)
     mlab.plot3d(+ width * eye, 0 * eye, height_span, tube_radius=r_tube)
 
-def make_real_frame(filepath):
-    """ Changes raw plots into final movie frame """
-    # Create final HD image container
-    out = np.zeros((1080, 1920, 3))
-
-    # Load plots
-    img = cv2.imread(filepath)
-
-    # Cut what is interesting
-    solitons = img[300:480, 370:800, :]
-
-    # Add to frame
-    out[900 : 1080, 830 : 1260, :] = solitons
-
-    # FIXME This will not work
-    # External video editor will be needed :(
-    # Add some text
-    font = cv2.FONT_HERSHEY_TRIPLEX
-    font_size = 6.0
-    font_thickness = 18
-    font_color = (255, 255, 255)
-    readme = 'AI trying to learn'
-    cv2.putText(out,
-                readme,
-                (0, 160),
-                font,
-                font_size,
-                font_color,
-                font_thickness)
-    readme = 'progressive metal'
-    cv2.putText(out,
-                readme,
-                (0, 420),
-                font,
-                font_size,
-                font_color,
-                font_thickness)
-
-    cv2.imwrite('dupa.png', out)
-
-    return img
-
 def set_camera_position(args):
     """ Filming angles, pro-shot illusions """
     # Extract values
@@ -302,7 +301,13 @@ def make_single(args):
     # Check for vmax/vmin tuning
     # print max(color), min(color)
 
-    savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
+    # FIXME this is shit
+    # Negative tick is a intro indicator
+    if tick >= 0:
+        savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
+    else:
+        savepath = 'imgs/intro_{}.png'.format(1000000 - tick)
+
     mlab.savefig(savepath, resolution())
 
 def resolution():
@@ -325,30 +330,34 @@ def main(sector):
         scores = pickle.load(fin)
 
     width = 800
-    # Generate movie factors
-    args = scores2args(scores)[sector * width: (sector+1) * width]
 
     # One figure is enough for one run?
     # This does not seem like a fine design
     fig = mlab.figure(fgcolor = (1, 1, 1),
                       bgcolor = (0.0, 0.0, 0.0))
 
-    # TODO Make intro
-    # simply construct special arglike dictionary
-    # to perform some introduction with the same code
-    # intro_args = make_intro(args[0])
-    # for arg in intro_args:
-    #     make_single(arg)
+    # Generate movie factors
+    args = scores2args(scores)
 
-    for arg in args:
-        print arg['tick']
-        make_single(arg)
+    if sector < 0:
+        # Generate intro
+        intro_args = make_intro(args[0])
+        for arg in intro_args:
+            print arg['tick']
+            make_single(arg)
+    else:
+        # Frame by frame from the given sector
+        args = args[sector * width: (sector+1) * width]
+        for arg in args:
+            print arg['tick']
+            make_single(arg)
 
 if __name__ == '__main__':
     # This is a very not professional paralellization system
     if len(sys.argv) < 2:
         sector = 0
     else:
+        # Use -1 as intro generator
         sector = int(sys.argv[1])
 
     print 'Animating sector:', sector
