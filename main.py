@@ -14,8 +14,8 @@ mlab.options.offscreen = True
 
 def make_intro(args):
     """ What what """
-    # Directing
-    nof_frames = 100
+    # Directing, 30 frames suppose to be 1s
+    nof_frames = 120
 
     # Deserialize data of the final frame
     tick = args['tick']
@@ -32,7 +32,7 @@ def make_intro(args):
     t = np.linspace(0, np.pi * 2, nof_frames)
     # Fake values for the swing amp factor
     champs = np.linspace(12, 1, nof_frames)
-    champs = 11 * np.sin(t)**2 + 1
+    champs = 11 * np.sin(t/2)**2 + 1
     proportions = np.linspace(1-proportion, proportion, nof_frames)
 
     out = []
