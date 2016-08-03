@@ -29,8 +29,10 @@ def make_intro(args):
     color_a     = args['color_a']
     color_b     = args['color_b']
 
+    t = np.linspace(0, np.pi * 2, nof_frames)
     # Fake values for the swing amp factor
-    champs = np.linspace(4, 1, nof_frames)
+    champs = np.linspace(12, 1, nof_frames)
+    proportions = np.linspace(1-proportion, proportion, nof_frames)
 
     out = []
     for it in range(nof_frames):
@@ -38,16 +40,18 @@ def make_intro(args):
         fposs = []
         # Finger loop
         for jt in range(len(finger_amps)):
-            famps.append(finger_amps[jt]/2)
-            fposs.append(finger_poss[jt])
+            # No solitons in the insto
+            famps.append(0)
+            fposs.append(0)
 
         c_dict = {'finger_amps' : famps,
                   'finger_poss' : fposs,
                   'chord_amp'   : champs[it],
                   'color_a'     : color_a,
-                  'color_b'     : color_b,
-                  'c_prop'      : proportion,
-                  'tick'        : -it}
+                  # Force green beginning, see utils.colors
+                  'color_b'     : 9,
+                  'c_prop'      : proportions[it],
+                  'tick'        : -nof_frames + it}
 
         out.append(c_dict)
 
@@ -306,14 +310,14 @@ def make_single(args):
     if tick >= 0:
         savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
     else:
-        savepath = 'imgs/intro_{}.png'.format(1000000 - tick)
+        savepath = 'imgs/intro_{}.png'.format(1000000 + tick)
 
     mlab.savefig(savepath, resolution())
 
 def resolution():
     """ Clever constant """
     # Mayavi performs best when generating squares
-    side = 420
+    side = 220
 
     return (side, side)
 
