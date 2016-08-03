@@ -32,6 +32,7 @@ def make_intro(args):
     t = np.linspace(0, np.pi * 2, nof_frames)
     # Fake values for the swing amp factor
     champs = np.linspace(12, 1, nof_frames)
+    champs = 11 * np.sin(t)**2 + 1
     proportions = np.linspace(1-proportion, proportion, nof_frames)
 
     out = []
@@ -310,14 +311,14 @@ def make_single(args):
     if tick >= 0:
         savepath = 'imgs/frame_{}.png'.format(1000000 + tick)
     else:
-        savepath = 'imgs/intro_{}.png'.format(1000000 + tick)
+        savepath = 'imgs/fintro_{}.png'.format(1000000 + tick)
 
     mlab.savefig(savepath, resolution())
 
 def resolution():
     """ Clever constant """
     # Mayavi performs best when generating squares
-    side = 220
+    side = 920
 
     return (side, side)
 
