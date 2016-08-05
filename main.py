@@ -12,6 +12,23 @@ from utils import amplitudes as ua
 # Work off-screen
 mlab.options.offscreen = True
 
+class Director(object):
+    """ Help control many parameters of the movie """
+    def __init__(self):
+        """ Konstruktor """
+        # Soliton space range
+        self.t_min = 20
+        self.t_max = 90
+
+    def set_soliton_range(self, tmin, tmax):
+        """ Setter """
+        self.t_min = tmin
+        self.t_max = tmax
+
+    def soliton_range(self):
+        """ Give back """
+        return self.t_min, self.t_max
+
 def make_intro(args):
     """ What what """
     # Directing, 30 frames suppose to be 1s
@@ -228,7 +245,7 @@ def set_camera_position(args):
     elevation = 40 + verti
     mlab.view(azimuth, elevation, 3.0)
 
-def make_single(args):
+def make_single(args, director):
     """ Mayavi tryouts """
     # De-serialize arguments
     tick = args['tick']
@@ -246,6 +263,7 @@ def make_single(args):
     swing = 0.06 + 0.12* champ
 
     # Thing angularly about the tick
+    # TODO Make an arg named phi
     phi = np.pi * tick / 6.0
 
     # Make clear figure
@@ -258,9 +276,10 @@ def make_single(args):
 
     # Create angular solitons
     # This space need to cover the whole piano span
-    # TODO Automate range detection
     res = 800
-    t = np.linspace(20, 90, res)
+    tmin, tmax = director.soliton_range()
+    t = np.linspace(tmin, tmax, res)
+
     # This is the visual span
     x = np.linspace(-5, 5, res)
 
@@ -318,44 +337,67 @@ def make_single(args):
 def resolution():
     """ Clever constant """
     # Mayavi performs best when generating squares
-    side = 920
+    side = 1920
 
     return (side, side)
 
-def main(sector):
-    """ blurpf """
-    # blompf notes sample PITCH | START | DURATION | VOLUME
+def position_range(args):
+    """ Get min and max pitch values """
+    positions = []
+    for arg in args:
+        positions.append(arg['finger_poss'])
 
-    # Point the blompf data
-    prefix = 'xc'
+    # Go numpy
+    positions = np.array(positions)
+
+    return positions.min(), positions.max()
+
+def load_args(prefix):
+    """ Make movie args straight from the blompf prefix """
     blompf_path = prefix + '_blompf_data.pickle'
 
     # Get notes
     with open(blompf_path) as fin:
         scores = pickle.load(fin)
 
-    width = 800
+    # Generate movie factors
+    args = scores2args(scores)
+
+    return args
+
+def main(sector):
+    """ blurpf """
+    # Point the blompf data
+    prefix = 'ne'
+    args = load_args(prefix)
 
     # One figure is enough for one run?
     # This does not seem like a fine design
     fig = mlab.figure(fgcolor = (1, 1, 1),
                       bgcolor = (0.0, 0.0, 0.0))
 
-    # Generate movie factors
-    args = scores2args(scores)
+    # Prepare setting struct
+    director = Director()
+
+    # Find pitch-range to use as soliton-space-range
+    tmin, tmax = position_range(args)
+    director.set_soliton_range(tmin, tmax)
+
+    # Number of images to generate in one run
+    width = 800
 
     if sector < 0:
         # Generate intro
         intro_args = make_intro(args[0])
         for arg in intro_args:
             print arg['tick']
-            make_single(arg)
+            make_single(arg, director)
     else:
         # Frame by frame from the given sector
         args = args[sector * width: (sector+1) * width]
         for arg in args:
             print arg['tick']
-            make_single(arg)
+            make_single(arg, director)
 
 if __name__ == '__main__':
     # This is a very not professional paralellization system
