@@ -32,9 +32,10 @@ class Director(object):
 def make_intro(args):
     """ What what """
     # Directing, 30 frames suppose to be 1s
-    nof_frames = 120
+    nof_frames = 90
 
     # Deserialize data of the final frame
+    phi = args['phi']
     tick = args['tick']
     champ = args['chord_amp']
     finger_amps = args['finger_amps']
@@ -49,7 +50,7 @@ def make_intro(args):
     t = np.linspace(0, np.pi * 2, nof_frames)
     # Fake values for the swing amp factor
     champs = np.linspace(12, 1, nof_frames)
-    champs = 11 * np.sin(t/2)**2 + 1
+    champs = 7 * np.sin(t/2)**2 + 1
     proportions = np.linspace(1-proportion, proportion, nof_frames)
 
     out = []
@@ -62,6 +63,12 @@ def make_intro(args):
             famps.append(0)
             fposs.append(0)
 
+        # Make it go upside down
+        tick = -nof_frames + it
+
+        # Go slower
+        phi = np.pi * it / 10.0
+
         c_dict = {'finger_amps' : famps,
                   'finger_poss' : fposs,
                   'chord_amp'   : champs[it],
@@ -69,7 +76,8 @@ def make_intro(args):
                   # Force green beginning, see utils.colors
                   'color_b'     : 9,
                   'c_prop'      : proportions[it],
-                  'tick'        : -nof_frames + it}
+                  'phi'         : phi,
+                  'tick'        : tick}
 
         out.append(c_dict)
 
@@ -168,12 +176,17 @@ def scores2args(scores):
             famps.append(amps[jt][it])
             fposs.append(positions[jt][it])
 
+        # Use this with trigonometric functions
+        # Think about circling instead of going forward
+        phi = np.pi * it / 6.0
+
         c_dict = {'finger_amps' : famps,
                   'finger_poss' : fposs,
                   'chord_amp'   : champs[it],
                   'color_a'     : color_a[it],
                   'color_b'     : color_b[it],
                   'c_prop'      : proportions[it],
+                  'phi'         : phi,
                   'tick'        : it}
 
         out.append(c_dict)
@@ -248,10 +261,13 @@ def set_camera_position(args):
 def make_single(args, director):
     """ Mayavi tryouts """
     # De-serialize arguments
-    tick = args['tick']
-    champ = args['chord_amp']
+    phi         = args['phi']
+    tick        = args['tick']
+    champ       = args['chord_amp']
     finger_amps = args['finger_amps']
     finger_poss = args['finger_poss']
+
+    # Count fingers
     howmany     = len(finger_amps)
 
     # Color setup
@@ -362,7 +378,6 @@ def load_args(prefix):
 
     # Generate movie factors
     args = scores2args(scores)
-
     return args
 
 def main(sector):
@@ -389,7 +404,7 @@ def main(sector):
     if sector < 0:
         # Generate intro
         intro_args = make_intro(args[0])
-        for arg in intro_args:
+        for arg in intro_args[44:46]:
             print arg['tick']
             make_single(arg, director)
     else:
