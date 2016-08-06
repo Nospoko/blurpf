@@ -12,6 +12,22 @@ from utils import amplitudes as ua
 # Work off-screen
 mlab.options.offscreen = True
 
+def crop_images():
+    """ Utility for movie creation """
+    paths = glob('imgs/*.png')
+    
+    # For some reason on ubuntu it is not automatic
+    paths.sort()
+
+    for path in paths:
+        img = cv2.imread(path)
+        # Negotiate with resolution
+        frame = img[250 : 650, 50 : 850, :]
+        savepath = 'imgs/cropped/' + os.path.split(path)[1]
+        cv2.imwrite(savepath, frame)
+        # Show progress
+        print savepath
+
 class Director(object):
     """ Help control many parameters of the movie """
     def __init__(self):
@@ -50,7 +66,7 @@ def make_intro(args):
     t = np.linspace(0, np.pi * 2, nof_frames)
     # Fake values for the swing amp factor
     champs = np.linspace(12, 1, nof_frames)
-    champs = 7 * np.sin(t/2)**2 + 1
+    champs = 7 * np.sin(t/2)**2 + champ
     proportions = np.linspace(1-proportion, proportion, nof_frames)
 
     out = []
@@ -82,18 +98,6 @@ def make_intro(args):
         out.append(c_dict)
 
     return out
-
-def crop_images():
-    """ Utility for movie creation """
-    paths = glob('imgs/*.png')
-    for path in paths:
-        img = cv2.imread(path)
-        # Negotiate with resolution
-        frame = img[250 : 650, 50 : 850, :]
-        savepath = 'imgs/cropped/' + os.path.split(path)[1]
-        cv2.imwrite(savepath, frame)
-        # Show progress
-        print savepath
 
 def fingers2amps(fingers):
     """ Another esoteric transformator """
@@ -140,7 +144,7 @@ def chords2champs(chords):
     chord_amps = np.zeros(full_len)
     for note in chords:
         sta, end = ua.get_note_framespan(note)
-        fade = ua.fade_down(note)
+        fade = 1.4 * ua.fade_down(note)
         # FIXME pls, maybe some switch statement?
         if len(fade) > 32:
             fade = fade**4
@@ -353,7 +357,7 @@ def make_single(args, director):
 def resolution():
     """ Clever constant """
     # Mayavi performs best when generating squares
-    side = 1920
+    side = 420
 
     return (side, side)
 
@@ -383,7 +387,7 @@ def load_args(prefix):
 def main(sector):
     """ blurpf """
     # Point the blompf data
-    prefix = 'ne'
+    prefix = 'in'
     args = load_args(prefix)
 
     # One figure is enough for one run?
@@ -399,12 +403,12 @@ def main(sector):
     director.set_soliton_range(tmin, tmax)
 
     # Number of images to generate in one run
-    width = 800
+    width = 1000
 
     if sector < 0:
         # Generate intro
         intro_args = make_intro(args[0])
-        for arg in intro_args[44:46]:
+        for arg in intro_args:
             print arg['tick']
             make_single(arg, director)
     else:
