@@ -12,22 +12,6 @@ from utils import amplitudes as ua
 # Work off-screen
 mlab.options.offscreen = True
 
-def crop_images():
-    """ Utility for movie creation """
-    paths = glob('imgs/*.png')
-    
-    # For some reason on ubuntu it is not automatic
-    paths.sort()
-
-    for path in paths:
-        img = cv2.imread(path)
-        # Negotiate with resolution
-        frame = img[250 : 650, 50 : 850, :]
-        savepath = 'imgs/cropped/' + os.path.split(path)[1]
-        cv2.imwrite(savepath, frame)
-        # Show progress
-        print savepath
-
 class Director(object):
     """ Help control many parameters of the movie """
     def __init__(self):
@@ -90,7 +74,7 @@ def make_intro(args):
                   'chord_amp'   : champs[it],
                   'color_a'     : color_a,
                   # Force green beginning, see utils.colors
-                  'color_b'     : 9,
+                  'color_b'     : 5,
                   'c_prop'      : proportions[it],
                   'phi'         : phi,
                   'tick'        : tick}
@@ -357,7 +341,7 @@ def make_single(args, director):
 def resolution():
     """ Clever constant """
     # Mayavi performs best when generating squares
-    side = 420
+    side = 1520
 
     return (side, side)
 
@@ -370,7 +354,11 @@ def position_range(args):
     # Go numpy
     positions = np.array(positions)
 
-    return positions.min(), positions.max()
+    # Add margin to be cut in post-production
+    out_min = positions.min() - 6
+    out_max = positions.max() + 6
+
+    return out_min, out_max
 
 def load_args(prefix):
     """ Make movie args straight from the blompf prefix """
@@ -387,7 +375,7 @@ def load_args(prefix):
 def main(sector):
     """ blurpf """
     # Point the blompf data
-    prefix = 'in'
+    prefix = 'jl'
     args = load_args(prefix)
 
     # One figure is enough for one run?

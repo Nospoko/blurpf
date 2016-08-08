@@ -24,7 +24,7 @@ def make_movie_frames():
     paths = glob('imgs/*.png')
     paths.sort()
 
-    border = cv2.imread('borders/stars_320p.png')
+    border = cv2.imread('borders/stars_720p.png')
     hsv_border = cv2.cvtColor(border, cv2.COLOR_BGR2HSV)
 
     # Make copy of the hue part
@@ -33,12 +33,13 @@ def make_movie_frames():
 
     print 'Using border with resolution:', hue_border.shape
 
+    # for it, path in enumerate(paths[0:5]):
     for it, path in enumerate(paths):
         # Read image and cut
         img = cv2.imread(path)
         # Adjust manually
-        xim_sta, xim_end = 85, 215
-        yim_sta, yim_end = 25, 295
+        xim_sta, xim_end = 500, 1000 
+        yim_sta, yim_end = 120, 1208
         croped = img[xim_sta:xim_end, yim_sta : yim_end, :]
 
         # Prepare funky border
@@ -47,15 +48,15 @@ def make_movie_frames():
         border = cv2.cvtColor(hsv_border, cv2.COLOR_HSV2BGR)
 
         # Put image in border
-        bx_sta = 25
+        bx_sta = 97
         bx_end = bx_sta + xim_end - xim_sta
-        by_sta = 25
+        by_sta = 95 
         by_end = by_sta + yim_end - yim_sta
         # border[25:155, :,:] = croped
         border[bx_sta:bx_end, by_sta:by_end,:] = croped
 
         # Write to disk
-        savepath = 'imgs/movie/' + os.path.split(path)[1]
+        savepath = 'imgs/dupa/' + os.path.split(path)[1]
         cv2.imwrite(savepath, border)
 
         if it%20 == 0: print it
