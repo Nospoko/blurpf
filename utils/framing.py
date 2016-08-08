@@ -56,7 +56,7 @@ def make_movie_frames():
         border[bx_sta:bx_end, by_sta:by_end,:] = croped
 
         # Write to disk
-        savepath = 'imgs/dupa/' + os.path.split(path)[1]
+        savepath = 'imgs/movie/' + os.path.split(path)[1]
         cv2.imwrite(savepath, border)
 
         if it%20 == 0: print it
